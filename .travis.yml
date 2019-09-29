@@ -5,6 +5,11 @@ node_js:
 install:
   - yarn install
   - yarn build
+branches:
+  only:
+  - master
+  - develop
+  - /^feature.*$/
 deploy:
   provider: npm
   email: felice.caricati@gmail.com
