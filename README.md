@@ -54,6 +54,16 @@ const compDispatcher = new ComponentDispatcher();
 compDispatcher.createAsyncComponents(['ExampleComponent']);
 ```
 
+If you need, is possible ti change the default html element selector ('data-component'), keep in mind that the name inside the data-component attribute is used for the lazy import, so in order to keep the lazy import working you need however a 'data-${yourDataName}' structure
+
+```js
+import { ComponentDispatcher } from 'html-scoped-component-importer';
+
+const compDispatcher = new ComponentDispatcher();
+compDispatcher.Selector('data-myFantasticAttributeName');
+compDispatcher.createAsyncComponents(['ExampleComponent']);
+```
+
 ```html
 <div data-component="ExampleComponent"></div>
 ```

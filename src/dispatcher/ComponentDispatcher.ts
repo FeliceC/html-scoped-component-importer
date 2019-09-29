@@ -8,6 +8,10 @@ export default class ComponentsDispatcher {
     this.componentSelector = selector;
   }
 
+  private get compAttribute(): string {
+    return this.componentSelector.replace('data-', '');
+  }
+
   constructor() {
     // this.domComponents = this.getDomComponents();
     // this.observeDomChanges();
@@ -41,7 +45,7 @@ export default class ComponentsDispatcher {
     let comps = new Map();
     for (const compName of names) {
       comps.set(compName, ComponentsDispatcher.domComponents.filter(el => {
-        return el.dataset.component.includes(compName)
+        return el.dataset[this.compAttribute].includes(compName)
       }));
 
       if (comps.get(compName) && comps.get(compName).length > 0) {
