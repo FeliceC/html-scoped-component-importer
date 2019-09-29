@@ -6,7 +6,7 @@
   "scripts": {
     "start": "webpack-dev-server --mode development --open",
     "build": "webpack --mode production",
-    "test": "test --passWithNoTests",
+    "test": "test --passWithNoTests"
   },
   "devDependencies": {
     "@babel/core": "^7.6.0",
