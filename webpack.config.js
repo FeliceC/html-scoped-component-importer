@@ -3,7 +3,7 @@ const HtmlWebPackPlugin = require("html-webpack-plugin");
 
 module.exports = {
   entry: {
-    main: `${path.resolve(__dirname, 'src')}/index.ts`
+    main: `${path.resolve(__dirname, 'example/src')}/index.js`
   },
   devtool: 'inline-source-map',
   stats: 'minimal',
@@ -36,9 +36,9 @@ module.exports = {
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
-    // alias: {
-    //   COMPONENTS: path.resolve(__dirname, 'src/components'),
-    // }
+    alias: {
+      COMPONENTS: path.resolve(__dirname, 'example/src/components'),
+    }
   },
   devServer: {
     contentBase: path.join(__dirname, 'dist'),
@@ -51,10 +51,10 @@ module.exports = {
     filename: `[name].js`,
     chunkFilename: `[name].chunks.js`
   },
-  // plugins: [
-  //   new HtmlWebPackPlugin({
-  //     template: "./src/index.html",
-  //     filename: "./index.html"
-  //   })
-  // ]
+  plugins: [
+    new HtmlWebPackPlugin({
+      template: "./example/src/index.html",
+      filename: "./index.html"
+    })
+  ]
 };

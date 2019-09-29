@@ -4,12 +4,16 @@
   "main": "./src/index.ts",
   "license": "MIT",
   "scripts": {
+    "start": "webpack-dev-server --mode development --open",
     "build": "webpack --mode production"
   },
   "devDependencies": {
     "@babel/core": "^7.6.0",
     "@babel/preset-env": "^7.6.0",
+    "babel-eslint": "^10.0.3",
     "babel-loader": "^8.0.6",
+    "eslint": "^6.5.0",
+    "eslint-config-airbnb-base": "^14.0.0",
     "html-loader": "^0.5.5",
     "html-webpack-plugin": "^3.2.0",
     "ts-loader": "^6.1.0",
@@ -27,55 +31,5 @@
     "Android >= 5",
     "not ie < 11",
     "not op_mini all"
-  ],
-  "eslintConfig": {
-    "extends": "airbnb-base",
-    "parser": "babel-eslint",
-    "env": {
-      "browser": true,
-      "es6": true
-    },
-    "parserOptions": {
-      "allowImportExportEverywhere": true,
-      "sourceType": "module"
-    },
-    "plugins": [
-      "compat"
-    ],
-    "rules": {
-      "compat/compat": "error",
-      "no-param-reassign": "off",
-      "no-useless-constructor": "off",
-      "no-restricted-syntax": "off",
-      "padded-blocks": "off",
-      "no-console": "error",
-      "no-debugger": "error",
-      "no-alert": "error",
-      "arrow-parens": [
-        "error",
-        "as-needed"
-      ],
-      "comma-dangle": [
-        "error",
-        "never"
-      ],
-      "arrow-body-style": [
-        "error",
-        "as-needed"
-      ],
-      "no-underscore-dangle": "off",
-      "class-methods-use-this": "off",
-      "max-len": [
-        "error",
-        {
-          "code": 250
-        }
-      ]
-    },
-    "settings": {
-      "polyfills": [
-        "serviceworkers"
-      ]
-    }
-  }
+  ]
 }
