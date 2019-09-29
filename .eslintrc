@@ -1,0 +1,51 @@
+{
+   "extends": "airbnb-base",
+   "parser": "babel-eslint",
+   "env": {
+     "browser": true,
+     "es6": true
+   },
+   "parserOptions": {
+     "allowImportExportEverywhere": true,
+     "sourceType": "module"
+   },
+   "plugins": [
+     "compat"
+   ],
+   "rules": {
+     "compat/compat": "error",
+     "no-param-reassign": "off",
+     "no-useless-constructor": "off",
+     "no-restricted-syntax": "off",
+     "padded-blocks": "off",
+     "no-console": "error",
+     "no-debugger": "error",
+     "no-alert": "error",
+     "arrow-parens": [
+       "error",
+       "as-needed"
+     ],
+     "semi": ["error", "always"],
+     "comma-dangle": [
+       "error",
+       "never"
+     ],
+     "arrow-body-style": [
+       "error",
+       "as-needed"
+     ],
+     "no-underscore-dangle": "off",
+     "class-methods-use-this": "off",
+     "max-len": [
+       "error",
+       {
+         "code": 250
+       }
+     ]
+   },
+   "settings": {
+     "polyfills": [
+       "serviceworkers"
+     ]
+   }
+}
