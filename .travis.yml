@@ -1,0 +1,15 @@
+sudo: false
+language: node_js
+node_js:
+- 12.10.0
+install:
+  - yarn install
+  - yarn build
+deploy:
+  provider: npm
+  email: felice.caricati@gmail.com
+  api_key:
+    secure: UpnGpTDG/T9O4I/bgdyn/6NprZ141ysdUfE1Gu7zUyLbSmYyDMVxAaPptMkMc+ogMTkFu2Rkqf7P7BwS14pCy5DPjSWgEysSuoG4ed59+YuNo7Z1j3pYFKZ3KAb93fl4sPI3vXUGzEgIXBqxRuTBVECYZe3kKozzzZ/wDbR2Y+28SYQd1UKHd/QHeOCURs2nJq2Kgm19o7vr5urYqHiCC6LYMbZAqY0tKBSd2Hwklqncn2h+10j0+LWxofvRX4j2GDXPcLzcFrkIopxPaPLYBcRT0g7Wh7+kyqZ9/52w6EW7v14iw4iLKVx+0UjVtOoiOiH5cyCWT80yKy722gVLoWMEq9SopCNgBO1Pcq/ui8efcLzDTRkfIWAHhV/eClhnLIA5+re8kjtduCxY3iu6WD7DjFBZw6tDz/BaTHUXN0ao6SScvhcW/ZC+HtZGSjWS1jzLs5aGmNQDR1+V73ld8BC3DrdI/CpoD4wZBA99YeoGYrV6xzHn1u7xousWG2n1cCAJiQQ/9M8FGF/3wiruzPtFzVra5ZS5B1ZbLRd7YbFlDT+WNPvuU5qobi0Fi2hdjLRhSxrkJwLsP7/lJgXAa8vxnNofDk24naHi2OUlyHUVRwINUtxlzzMPNB8BMiw0Q6vNojaHvdQcHnqGzTopeH5GHJ9J+gyu2VpFHIaz4Xo=
+  on:
+    tags: true
+    repo: FeliceC/html-scoped-component-importer
