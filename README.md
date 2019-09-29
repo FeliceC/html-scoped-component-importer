@@ -1,9 +1,15 @@
-[![Build Status](https://travis-ci.org/FeliceC/form-serialize.svg?branch=master)](https://travis-ci.org/FeliceC/form-serialize)
+[![Build Status](https://travis-ci.org/FeliceC/html-scoped-component-importer.svg?branch=master)](https://travis-ci.org/FeliceC/html-scoped-component-importer)
+
+#html-scoped-component-importer
+
+This is a simple tool to let you create and dynamically import scoped components. All you need is a html element with the *data-component* attribute and it 
+will be imported and initialized.
+
 # Index
 
 - [Installation](#installation)
 - [Usage](#usage)
-- [License](/LICENSE)
+- [License](/LICENSE) 
 
 # Installation
 
