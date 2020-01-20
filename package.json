@@ -1,8 +1,11 @@
 {
   "name": "html-scoped-component-importer",
-  "version": "1.0.0",
-  "main": "./src/index.ts",
+  "version": "1.0.1",
+  "main": "./src/index.js",
   "license": "MIT",
+  "description": "Async html scoped components dispatcher",
+  "repository": "https://github.com/FeliceC/html-scoped-component-importer",
+  "author": "Felice Caricati <felice.caricati@gmail.com>",
   "scripts": {
     "start": "webpack-dev-server --mode development --open",
     "build": "webpack --mode production",
