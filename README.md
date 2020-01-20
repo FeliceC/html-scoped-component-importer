@@ -56,5 +56,15 @@ compDispatcher.createAsyncComponents();
 ```
 
 ```html
-<div data-component="ExampleComponent"></div>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Title</title>
+</head>
+
+<body>
+  <div data-component="ExampleComponent"></div>
+</body>
 ```
