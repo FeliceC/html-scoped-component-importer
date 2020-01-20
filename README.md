@@ -45,16 +45,19 @@ module.exports = {
 import { ComponentDispatcher } from 'html-scoped-component-importer';
 
 const compDispatcher = new ComponentDispatcher();
-compDispatcher.createAsyncComponents(['ExampleComponent']);
-```
-
-```js
-import { ComponentDispatcher } from 'html-scoped-component-importer';
-
-const compDispatcher = new ComponentDispatcher();
 compDispatcher.createAsyncComponents();
 ```
 
 ```html
-<div data-component="ExampleComponent"></div>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Title</title>
+</head>
+
+<body>
+  <div data-component="ExampleComponent"></div>
+</body>
 ```
