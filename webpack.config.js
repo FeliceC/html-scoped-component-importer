@@ -26,11 +26,6 @@ module.exports = {
             options: {minimize: true}
           }
         ]
-      },
-      {
-        test: /\.tsx?$/,
-        use: 'ts-loader',
-        exclude: /node_modules/
       }
     ]
   },
