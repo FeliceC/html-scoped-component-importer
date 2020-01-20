@@ -30,7 +30,6 @@ module.exports = {
     ]
   },
   resolve: {
-    extensions: ['.tsx', '.ts', '.js'],
     alias: {
       COMPONENTS: path.resolve(__dirname, 'example/src/components'),
     }

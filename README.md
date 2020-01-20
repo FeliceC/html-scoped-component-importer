@@ -32,21 +32,9 @@ npm install --save html-scoped-component-importer
 ```js
 module.exports = {
   ...
-  module: {
-    rules: [
-      ...
-      {
-        test: /\.tsx?$/,
-        use: 'ts-loader',
-        exclude: /node_modules/
-      }
-      ...
-    ]
-  },
   resolve: {
-    extensions: ['.tsx', '.ts', '.js'],
     alias: {
-      COMPONENTS: path.resolve(__dirname, 'example/src/components'),
+      COMPONENTS: path.resolve(__dirname, '{your components folder}'),
     }
   }
   ...
@@ -60,14 +48,11 @@ const compDispatcher = new ComponentDispatcher();
 compDispatcher.createAsyncComponents(['ExampleComponent']);
 ```
 
-If you need, is possible ti change the default html element selector ('data-component'), keep in mind that the name inside the data-component attribute is used for the lazy import, so in order to keep the lazy import working you need however a 'data-${yourDataName}' structure
-
 ```js
 import { ComponentDispatcher } from 'html-scoped-component-importer';
 
 const compDispatcher = new ComponentDispatcher();
-compDispatcher.Selector('data-myFantasticAttributeName');
-compDispatcher.createAsyncComponents(['ExampleComponent']);
+compDispatcher.createAsyncComponents();
 ```
 
 ```html
