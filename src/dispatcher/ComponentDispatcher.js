@@ -28,7 +28,7 @@ export default class ComponentsDispatcher {
     try {
       domComponents = [
         ...target.querySelectorAll(this.componentSelector)
-      ].filter(el => !el.getAttribute('data-component-init'));
+      ].filter(el => !el.UUID);
     } catch (e) {
       console.error(e);
     }
