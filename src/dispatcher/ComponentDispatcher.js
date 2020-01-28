@@ -28,18 +28,20 @@ export default class ComponentsDispatcher {
     try {
       domComponents = [
         ...target.querySelectorAll(this.componentSelector)
-      ].filter(el => !el.UUID);
+      ].filter(el => !el.UUID).map((el) => {
+        el.UUID = uuid();
+        return el;
+      }).reverse();
     } catch (e) {
       console.error(e);
     }
-
-    return domComponents.reverse();
+    return domComponents;
   }
 
-  getNamesFromDom(parent) {
+  getNames(components) {
     let compNames;
     try {
-      const names = this.getDomComponents(parent)
+      const names = components
         .filter(el => el.dataset.component !== '')
         .map(comp => comp.dataset.component.split(','));
       compNames = [...new Set(names.flat())];
@@ -101,10 +103,8 @@ export default class ComponentsDispatcher {
           el.forEach((compEl) => {
             try {
               const DynamicComponent = comps[compName];
-              const UNIQUE_ID = uuid();
-              compEl.UUID = UNIQUE_ID;
               const comp = new DynamicComponent(compEl);
-              APP_COMPONENTS.set(UNIQUE_ID, comp);
+              APP_COMPONENTS.set(compEl.UUID, comp);
             } catch (e) {
               console.error(e);
             }
@@ -121,10 +121,10 @@ export default class ComponentsDispatcher {
     this.importEnded = false;
     try {
       const comps = {};
-      const names = this.getNamesFromDom(target);
       const components = this.getDomComponents(target);
+      const names = this.getNames(components);
 
-      if (!components) return;
+      if (components.length === 0) return;
 
       names.forEach((compName) => {
         comps[compName.trim()] = components.filter(el => el.dataset[this.compAttribute].split(',').includes(compName.trim()));
@@ -139,18 +139,14 @@ export default class ComponentsDispatcher {
             const DynamicComponent = res.default;
             this.importedComponents.set(name, DynamicComponent);
             elements.forEach((el) => {
-              const UNIQUE_ID = uuid();
-              el.UUID = UNIQUE_ID;
               const comp = new DynamicComponent(el);
-              APP_COMPONENTS.set(UNIQUE_ID, comp);
+              APP_COMPONENTS.set(el.UUID, comp);
             });
           });
         } else {
           elements.forEach((el) => {
-            const UNIQUE_ID = uuid();
-            el.UUID = UNIQUE_ID;
             const comp = new componentModule(el);
-            APP_COMPONENTS.set(UNIQUE_ID, comp);
+            APP_COMPONENTS.set(el.UUID, comp);
           });
         }
       }
