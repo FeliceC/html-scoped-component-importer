@@ -67,13 +67,16 @@ export default class ComponentsDispatcher {
           }
 
           if (mutation.target && [...mutation.removedNodes].length) {
-            [...mutation.removedNodes].forEach((el) => {
-              const COMP_ID = el.UUID;
-              if (COMP_ID && APP_COMPONENTS.has(COMP_ID)) {
-                const removedComp = APP_COMPONENTS.get(COMP_ID);
-                APP_COMPONENTS.delete(COMP_ID);
-                removedComp._destroy();
-              }
+            [...mutation.removedNodes].filter(el => typeof el.querySelectorAll === 'function').forEach((removedNodes) => {
+              const components = removedNodes.querySelectorAll(this.componentSelector);
+              [...components].forEach((comp) => {
+                const COMP_ID = comp.UUID;
+                if (COMP_ID && APP_COMPONENTS.has(COMP_ID)) {
+                  const removedComp = APP_COMPONENTS.get(COMP_ID);
+                  APP_COMPONENTS.delete(COMP_ID);
+                  removedComp._destroy();
+                }
+              });
             });
           }
           // const newNodes = mutation.addedNodes;
