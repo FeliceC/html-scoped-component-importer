@@ -127,31 +127,28 @@ export default class ComponentsDispatcher {
       if (components.length === 0) return;
 
       names.forEach((compName) => {
-        comps[compName.trim()] = components.filter(el => el.dataset[this.compAttribute].split(',').includes(compName.trim()));
-      });
-
-      for (const [name, elements] of Object.entries(comps)) {
-        let componentModule = this.importedComponents.get(name);
-        if (!componentModule) {
-          import(
-            /* webpackChunkName: `component-[request]` */ `COMPONENTS/${name}.js`
-          ).then((res) => {
-            const DynamicComponent = res.default;
-            this.importedComponents.set(name, DynamicComponent);
-            elements.forEach((el) => {
+        components.filter(el => el.dataset[this.compAttribute].split(',').includes(compName.trim())).forEach(async (el) => {
+          try {
+            let componentModule = this.importedComponents.get(compName);
+            if (!componentModule) {
+              const res = await import(/* webpackChunkName: `component-[request]` */ `COMPONENTS/${name}.js`);
+              const DynamicComponent = res.default;
+              this.importedComponents.set(compName, DynamicComponent);
               const comp = new DynamicComponent(el);
               APP_COMPONENTS.set(el.UUID, comp);
-            });
-          });
-        } else {
-          elements.forEach((el) => {
-            const comp = new componentModule(el);
-            APP_COMPONENTS.set(el.UUID, comp);
-          });
-        }
-      }
+            } else {
+              const comp = new componentModule(el);
+              APP_COMPONENTS.set(el.UUID, comp);
+            }
+          } catch (e) {
+            console.error(`[${compName}] initialization error on el =>`, el, 'with error =>', e);
+          }
+        });
+      });
+
     } catch (e) {
-      console.error(e);
+      console.error('async importAsyncComponents(target) => ', e);
+      this.importEnded = false;
     }
     this.importEnded = true;
   }
