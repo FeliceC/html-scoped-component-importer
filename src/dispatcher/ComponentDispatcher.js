@@ -3,6 +3,10 @@ import uuid from 'uuid/v1';
 const APP_COMPONENTS = new Map();
 
 export default class ComponentsDispatcher {
+  get APP_COMPONENTS () {
+    return APP_COMPONENTS;
+  }
+
   set Selector(selector) {
     this.componentSelector = selector || '[data-component]';
   }
@@ -131,7 +135,7 @@ export default class ComponentsDispatcher {
           try {
             let componentModule = this.importedComponents.get(compName);
             if (!componentModule) {
-              const res = await import(/* webpackChunkName: `component-[request]` */ `COMPONENTS/${name}.js`);
+              const res = await import(/* webpackChunkName: `component-[request]` */ `COMPONENTS/${compName}.js`);
               const DynamicComponent = res.default;
               this.importedComponents.set(compName, DynamicComponent);
               const comp = new DynamicComponent(el);
