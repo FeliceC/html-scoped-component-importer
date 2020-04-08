@@ -9,7 +9,8 @@ will be imported and initialized.
 
 - [Installation](#installation)
 - [Usage](#usage)
-- [License](/LICENSE) 
+- [Example](/example)
+- [License](/LICENSE)
 
 # Installation
 
@@ -27,8 +28,7 @@ npm install --save html-scoped-component-importer
 
 # Usage
 
-# webpack config
-
+## webpack config
 ```js
 module.exports = {
   ...
@@ -41,11 +41,22 @@ module.exports = {
 }
 ```
 
+## main.js
 ```js
 import { ComponentDispatcher } from 'html-scoped-component-importer';
 
 const compDispatcher = new ComponentDispatcher();
 compDispatcher.createAsyncComponents();
+```
+
+## ExampleComponent.js
+```js
+export default class ExampleComponent {
+  constructor(element) {
+    super(element);
+    element.innerHTML = element.dataset.component;
+  }
+}
 ```
 
 ```html
@@ -55,6 +66,7 @@ compDispatcher.createAsyncComponents();
 <head>
   <meta charset="utf-8">
   <title>Title</title>
+  <script async="async" defer="defer" src="main.js"></script>
 </head>
 
 <body>
