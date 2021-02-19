@@ -7,6 +7,7 @@ module.exports = {
   },
   devtool: 'inline-source-map',
   stats: 'minimal',
+  watch: false,
   module: {
     rules: [
       {
@@ -38,7 +39,7 @@ module.exports = {
     contentBase: path.join(__dirname, 'dist'),
     compress: true,
     hot: true,
-    port: 3003
+    port: 3003,
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
