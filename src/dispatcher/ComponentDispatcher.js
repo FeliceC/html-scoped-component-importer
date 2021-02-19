@@ -1,4 +1,4 @@
-import { uuid as v1 } from "uuid";
+import { v1 as uuid } from 'uuid';
 
 const APP_COMPONENTS = new Map();
 
