@@ -149,7 +149,7 @@ export default class ComponentsDispatcher {
               let componentModule = this.importedComponents.get(compName);
               if (!componentModule) {
                 const res = await import(
-                  /* webpackChunkName: `component-[request]` */ `COMPONENTS/${compName}.js`
+                  /* webpackChunkName: `component-[request]` */ `COMPONENTS/${compName}`
                 );
                 const DynamicComponent = res.default;
                 this.importedComponents.set(compName, DynamicComponent);

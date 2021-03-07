@@ -1,6 +1,7 @@
 import { cleanOptionKey, convertType } from '../utils/Utilities';
 
 export default class BaseComponent {
+  componentElement: HTMLElement
   get $el() {
     return this.componentElement;
   }
@@ -26,7 +27,7 @@ export default class BaseComponent {
     return this.$el.dataset.component;
   }
 
-  constructor(element) {
+  constructor(element: HTMLElement) {
     this.componentElement = element;
   }
 }
