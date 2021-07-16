@@ -26,11 +26,10 @@ export default class ComponentsDispatcher {
     this.importedComponents = new Map();
   }
 
-  getDomComponents(parent) {
+  getDomComponents() {
     let domComponents = [];
-    const target = parent || document.body;
     try {
-      domComponents = [...target.querySelectorAll(this.componentSelector)]
+      domComponents = [...document.body.querySelectorAll(this.componentSelector)]
         .filter((el) => !el.UUID)
         .map((el) => {
           el.UUID = uuid();
@@ -107,7 +106,7 @@ export default class ComponentsDispatcher {
   async importComponents(comps, target) {
     this.async = false;
     try {
-      const components = this.getDomComponents(target);
+      const components = this.getDomComponents();
       for (const compName of Object.keys(comps)) {
         const el = components.filter((elelemt) =>
           elelemt.dataset[this.compAttribute].split(",").includes(compName)
@@ -134,7 +133,7 @@ export default class ComponentsDispatcher {
     this.importEnded = false;
     try {
       const comps = {};
-      const components = this.getDomComponents(target);
+      const components = this.getDomComponents();
       const names = this.getNames(components);
 
       if (components.length === 0) return;
