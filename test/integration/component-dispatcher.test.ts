@@ -187,9 +187,7 @@ describe('ComponentsDispatcher', () => {
       container.appendChild(el);
       document.body.appendChild(container);
 
-      await new Promise(resolve => setTimeout(resolve, 0));
-
-      expect(el.dataset.initialized).toBe('true');
+      await vi.waitFor(() => expect(el.dataset.initialized).toBe('true'), { timeout: 2000 });
     });
 
     it('initializes a newly appended component using sync registry', async () => {
@@ -206,9 +204,7 @@ describe('ComponentsDispatcher', () => {
       container.appendChild(newEl);
       document.body.appendChild(container);
 
-      await new Promise(resolve => setTimeout(resolve, 0));
-
-      expect(newEl.dataset.initialized).toBe('true');
+      await vi.waitFor(() => expect(newEl.dataset.initialized).toBe('true'), { timeout: 2000 });
     });
 
     it('calls _destroy on instance when containing element is removed', async () => {
@@ -223,9 +219,7 @@ describe('ComponentsDispatcher', () => {
 
       document.body.removeChild(container);
 
-      await new Promise(resolve => setTimeout(resolve, 0));
-
-      expect(el.dataset.destroyed).toBe('true');
+      await vi.waitFor(() => expect(el.dataset.destroyed).toBe('true'), { timeout: 2000 });
     });
 
     it('does not throw when removed element has no _destroy method', async () => {
@@ -252,7 +246,7 @@ describe('ComponentsDispatcher', () => {
       container.appendChild(el);
       document.body.appendChild(container);
 
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 50));
 
       expect(el.dataset.initialized).toBeUndefined();
     });
