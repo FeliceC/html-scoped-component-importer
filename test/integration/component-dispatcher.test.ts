@@ -112,4 +112,55 @@ describe('ComponentsDispatcher', () => {
       process.env.NODE_ENV = originalEnv;
     });
   });
+
+  describe('importAsyncComponents', () => {
+    it('dynamically imports and instantiates a component', async () => {
+      const el = document.createElement('div');
+      el.dataset.component = 'TestComponent';
+      document.body.appendChild(el);
+
+      await dispatcher.importAsyncComponents();
+
+      expect(el.dataset.initialized).toBe('true');
+      expect(dispatcher.APP_COMPONENTS.size).toBe(1);
+    });
+
+    it('returns early without error when no matching elements exist', async () => {
+      await expect(dispatcher.importAsyncComponents()).resolves.toBeUndefined();
+      expect(dispatcher.APP_COMPONENTS.size).toBe(0);
+    });
+
+    it('initializes all elements sharing the same component name', async () => {
+      const el1 = document.createElement('div');
+      el1.dataset.component = 'TestComponent';
+      document.body.appendChild(el1);
+
+      const el2 = document.createElement('div');
+      el2.dataset.component = 'TestComponent';
+      document.body.appendChild(el2);
+
+      await dispatcher.importAsyncComponents();
+
+      expect(el1.dataset.initialized).toBe('true');
+      expect(el2.dataset.initialized).toBe('true');
+      expect(dispatcher.APP_COMPONENTS.size).toBe(2);
+    });
+
+    it('caches the resolved class — second call skips dynamic import', async () => {
+      const el1 = document.createElement('div');
+      el1.dataset.component = 'TestComponent';
+      document.body.appendChild(el1);
+
+      await dispatcher.importAsyncComponents();
+
+      const el2 = document.createElement('div');
+      el2.dataset.component = 'TestComponent';
+      document.body.appendChild(el2);
+
+      await dispatcher.importAsyncComponents();
+
+      expect(el2.dataset.initialized).toBe('true');
+      expect(dispatcher.APP_COMPONENTS.size).toBe(2);
+    });
+  });
 });
