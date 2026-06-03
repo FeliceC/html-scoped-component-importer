@@ -257,4 +257,84 @@ describe('ComponentsDispatcher', () => {
       expect(el.dataset.initialized).toBeUndefined();
     });
   });
+
+  describe('Selector setter', () => {
+    it('uses a custom selector for querySelectorAll', async () => {
+      dispatcher.Selector = '[data-widget]';
+
+      const widgetEl = document.createElement('div');
+      widgetEl.dataset.widget = 'MockComponent';
+      document.body.appendChild(widgetEl);
+
+      const defaultEl = document.createElement('div');
+      defaultEl.dataset.component = 'MockComponent';
+      document.body.appendChild(defaultEl);
+
+      await dispatcher.importComponents({ MockComponent });
+
+      expect(widgetEl.dataset.initialized).toBe('true');
+      expect(defaultEl.dataset.initialized).toBeUndefined();
+    });
+
+    it('falls back to [data-component] when set to empty string', async () => {
+      dispatcher.Selector = '';
+
+      const el = document.createElement('div');
+      el.dataset.component = 'MockComponent';
+      document.body.appendChild(el);
+
+      await dispatcher.importComponents({ MockComponent });
+
+      expect(el.dataset.initialized).toBe('true');
+    });
+  });
+
+  describe('compAttribute getter', () => {
+    it("returns 'component' for the default selector", () => {
+      expect(dispatcher.compAttribute).toBe('component');
+    });
+
+    it("returns 'widget' for [data-widget] selector", () => {
+      dispatcher.Selector = '[data-widget]';
+      expect(dispatcher.compAttribute).toBe('widget');
+    });
+
+    it("returns 'my-component' for [data-my-component=value] selector", () => {
+      dispatcher.Selector = '[data-my-component=value]';
+      expect(dispatcher.compAttribute).toBe('my-component');
+    });
+  });
+
+  describe('APP_COMPONENTS', () => {
+    it('is empty before any import', () => {
+      expect(dispatcher.APP_COMPONENTS.size).toBe(0);
+    });
+
+    it('maps element uuid to its instance after importComponents', async () => {
+      const el = document.createElement('div');
+      el.dataset.component = 'MockComponent';
+      document.body.appendChild(el);
+
+      await dispatcher.importComponents({ MockComponent });
+
+      const uuid = el.dataset.uuid!;
+      expect(dispatcher.APP_COMPONENTS.get(uuid)).toBeInstanceOf(MockComponent);
+    });
+
+    it('accumulates instances across multiple importComponents calls', async () => {
+      const el1 = document.createElement('div');
+      el1.dataset.component = 'MockComponent';
+      document.body.appendChild(el1);
+
+      await dispatcher.importComponents({ MockComponent });
+
+      const el2 = document.createElement('div');
+      el2.dataset.component = 'SecondMockComponent';
+      document.body.appendChild(el2);
+
+      await dispatcher.importComponents({ SecondMockComponent });
+
+      expect(dispatcher.APP_COMPONENTS.size).toBe(2);
+    });
+  });
 });
