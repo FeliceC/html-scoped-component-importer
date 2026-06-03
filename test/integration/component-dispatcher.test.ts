@@ -1,0 +1,115 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import ComponentsDispatcher from '../../src/dispatcher/ComponentDispatcher';
+
+class MockComponent {
+  constructor(public element: HTMLElement) {
+    element.dataset.initialized = 'true';
+  }
+}
+
+class FailingMockComponent {
+  constructor(_element: HTMLElement) {
+    throw new Error('init failed');
+  }
+}
+
+class SecondMockComponent {
+  constructor(public element: HTMLElement) {
+    element.dataset.secondInitialized = 'true';
+  }
+}
+
+describe('ComponentsDispatcher', () => {
+  let dispatcher: ComponentsDispatcher;
+
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    dispatcher = new ComponentsDispatcher();
+  });
+
+  afterEach(() => {
+    document.body.innerHTML = '';
+    vi.restoreAllMocks();
+  });
+
+  describe('importComponents', () => {
+    it('instantiates the matching component class for an element', async () => {
+      const el = document.createElement('div');
+      el.dataset.component = 'MockComponent';
+      document.body.appendChild(el);
+
+      await dispatcher.importComponents({ MockComponent });
+
+      expect(el.dataset.initialized).toBe('true');
+    });
+
+    it('stores the instance in APP_COMPONENTS keyed by uuid', async () => {
+      const el = document.createElement('div');
+      el.dataset.component = 'MockComponent';
+      document.body.appendChild(el);
+
+      await dispatcher.importComponents({ MockComponent });
+
+      const uuid = el.dataset.uuid!;
+      expect(uuid).toBeDefined();
+      expect(dispatcher.APP_COMPONENTS.get(uuid)).toBeInstanceOf(MockComponent);
+    });
+
+    it('skips elements that already have a data-uuid', async () => {
+      const el = document.createElement('div');
+      el.dataset.component = 'MockComponent';
+      el.dataset.uuid = 'already-set';
+      document.body.appendChild(el);
+
+      const constructorSpy = vi.fn();
+      class SpyComponent {
+        constructor(element: HTMLElement) { constructorSpy(); element.dataset.initialized = 'true'; }
+      }
+
+      await dispatcher.importComponents({ MockComponent: SpyComponent as unknown as typeof MockComponent });
+
+      expect(constructorSpy).not.toHaveBeenCalled();
+    });
+
+    it('initializes both classes when element lists two component names', async () => {
+      const el = document.createElement('div');
+      el.dataset.component = 'MockComponent,SecondMockComponent';
+      document.body.appendChild(el);
+
+      await dispatcher.importComponents({ MockComponent, SecondMockComponent });
+
+      expect(el.dataset.initialized).toBe('true');
+      expect(el.dataset.secondInitialized).toBe('true');
+    });
+
+    it('logs via console.error when constructor throws (production)', async () => {
+      const originalEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      const el = document.createElement('div');
+      el.dataset.component = 'FailingMockComponent';
+      document.body.appendChild(el);
+
+      await dispatcher.importComponents({ FailingMockComponent });
+
+      expect(consoleSpy).toHaveBeenCalled();
+      process.env.NODE_ENV = originalEnv;
+    });
+
+    it('renders dev error overlay on element when constructor throws (development)', async () => {
+      const originalEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'development';
+
+      const el = document.createElement('div');
+      el.dataset.component = 'FailingMockComponent';
+      document.body.appendChild(el);
+
+      await dispatcher.importComponents({ FailingMockComponent });
+
+      expect(el.style.cssText).toContain('#fff5f5');
+      expect(el.children.length).toBeGreaterThan(0);
+      process.env.NODE_ENV = originalEnv;
+    });
+  });
+});
