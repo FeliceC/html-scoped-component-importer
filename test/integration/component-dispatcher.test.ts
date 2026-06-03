@@ -163,4 +163,98 @@ describe('ComponentsDispatcher', () => {
       expect(dispatcher.APP_COMPONENTS.size).toBe(2);
     });
   });
+
+  describe('observeDomChanges', () => {
+    let observerCleanup: (() => void) | null = null;
+
+    afterEach(() => {
+      observerCleanup?.();
+      observerCleanup = null;
+    });
+
+    it('returns a cleanup function', () => {
+      observerCleanup = dispatcher.observeDomChanges();
+      expect(typeof observerCleanup).toBe('function');
+    });
+
+    it('initializes a newly appended component in async mode', async () => {
+      await dispatcher.importAsyncComponents();
+      observerCleanup = dispatcher.observeDomChanges();
+
+      const container = document.createElement('div');
+      const el = document.createElement('div');
+      el.dataset.component = 'TestComponent';
+      container.appendChild(el);
+      document.body.appendChild(container);
+
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(el.dataset.initialized).toBe('true');
+    });
+
+    it('initializes a newly appended component using sync registry', async () => {
+      const existing = document.createElement('div');
+      existing.dataset.component = 'MockComponent';
+      document.body.appendChild(existing);
+
+      await dispatcher.importComponents({ MockComponent });
+      observerCleanup = dispatcher.observeDomChanges();
+
+      const container = document.createElement('div');
+      const newEl = document.createElement('div');
+      newEl.dataset.component = 'MockComponent';
+      container.appendChild(newEl);
+      document.body.appendChild(container);
+
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(newEl.dataset.initialized).toBe('true');
+    });
+
+    it('calls _destroy on instance when containing element is removed', async () => {
+      const container = document.createElement('div');
+      const el = document.createElement('div');
+      el.dataset.component = 'DestroyableComponent';
+      container.appendChild(el);
+      document.body.appendChild(container);
+
+      await dispatcher.importAsyncComponents();
+      observerCleanup = dispatcher.observeDomChanges();
+
+      document.body.removeChild(container);
+
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(el.dataset.destroyed).toBe('true');
+    });
+
+    it('does not throw when removed element has no _destroy method', async () => {
+      const container = document.createElement('div');
+      const el = document.createElement('div');
+      el.dataset.component = 'TestComponent';
+      container.appendChild(el);
+      document.body.appendChild(container);
+
+      await dispatcher.importAsyncComponents();
+      observerCleanup = dispatcher.observeDomChanges();
+
+      expect(() => document.body.removeChild(container)).not.toThrow();
+    });
+
+    it('cleanup disconnects observer — new elements no longer initialized', async () => {
+      await dispatcher.importAsyncComponents();
+      const cleanup = dispatcher.observeDomChanges();
+      cleanup();
+
+      const container = document.createElement('div');
+      const el = document.createElement('div');
+      el.dataset.component = 'TestComponent';
+      container.appendChild(el);
+      document.body.appendChild(container);
+
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(el.dataset.initialized).toBeUndefined();
+    });
+  });
 });
