@@ -1,12 +1,13 @@
 {
   "compilerOptions": {
     "outDir": "./dist/",
-    "noImplicitAny": false,
+    "noImplicitAny": true,
     "sourceMap": true,
     "module": "esNext",
-    "target": "es5",
+    "moduleResolution": "bundler",
+    "target": "es2020",
     "jsx": "react",
     "allowJs": true,
-    "lib": ["es2015", "dom"]
+    "lib": ["es2020", "dom", "dom.iterable"]
   }
 }

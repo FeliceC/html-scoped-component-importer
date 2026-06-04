@@ -1,6 +1,6 @@
 {
   "name": "html-scoped-component-importer",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "main": "./src/index.ts",
   "license": "MIT",
   "description": "Async html scoped components dispatcher",
