@@ -1,4 +1,4 @@
-import { ComponentDispatcher } from '../../../src/index';
+import { ComponentDispatcher } from '../../../lib/index.js';
 import BundlerTestComponent from './components/BundlerTestComponent';
 import FailingBundlerComponent from './components/FailingBundlerComponent';
 

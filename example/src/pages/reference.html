@@ -37,7 +37,8 @@
       <section id="package">
         <h2>Package and requirements</h2>
         <ul>
-          <li>The package ships <strong>TypeScript sources</strong> (<code>main: ./src/index.ts</code>): your build must compile TypeScript from <code>node_modules</code> (ts-loader, esbuild, Vite, swc… all do by default or with an <code>include</code>).</li>
+          <li>The package ships <strong>ES2020 modules with type declarations</strong> (<code>lib/*.js</code> + <code>lib/*.d.ts</code>, source maps included), marked <code>sideEffects: false</code>. It is meant to be consumed through a bundler.</li>
+          <li>With webpack, define the <code>COMPONENTS</code> alias even in sync mode: the async import is part of the bundle and webpack resolves it at build time.</li>
           <li>No runtime dependencies. Uses <code>crypto.randomUUID()</code>, <code>MutationObserver</code> and dynamic <code>import()</code>: any evergreen browser (Chrome/Edge 92+, Firefox 95+, Safari 15.4+).</li>
           <li><strong>Async mode requires webpack</strong> and a <code>COMPONENTS</code> alias: the import path is built at runtime (<code>import(`COMPONENTS/${name}`)</code>) and only webpack turns it into a context module with one chunk per file. Vite, Rollup and esbuild leave it unresolved. Sync mode works with any bundler.</li>
         </ul>

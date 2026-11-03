@@ -1,9 +1,18 @@
 {
   "name": "html-scoped-component-importer",
   "version": "3.0.0",
-  "main": "./src/index.ts",
+  "main": "./lib/index.js",
+  "module": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    }
+  },
+  "sideEffects": false,
   "files": [
-    "src"
+    "lib"
   ],
   "license": "MIT",
   "packageManager": "yarn@1.22.22",
@@ -15,6 +24,8 @@
     "start": "webpack-dev-server --mode development --open",
     "build": "webpack --mode production",
     "build:demo": "webpack --mode development --no-devtool",
+    "build:lib": "node -e \"require('fs').rmSync('lib', { recursive: true, force: true })\" && tsc -p tsconfig.build.json",
+    "prepublishOnly": "yarn build:lib",
     "test:unit": "vitest run",
     "test:e2e": "yarn build && jest",
     "test": "yarn test:unit && yarn test:e2e",
@@ -22,7 +33,7 @@
     "serve": "node server.js",
     "prepare": "husky",
     "bench": "node benchmark/run.mjs",
-    "test:bundlers": "node test/bundlers/run.mjs && jest --testPathIgnorePatterns=/node_modules/ --testPathPatterns=test/bundlers"
+    "test:bundlers": "yarn build:lib && node test/bundlers/run.mjs && jest --testPathIgnorePatterns=/node_modules/ --testPathPatterns=test/bundlers"
   },
   "engines": {
     "node": ">=24.0.0"
