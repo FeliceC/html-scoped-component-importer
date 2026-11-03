@@ -7,9 +7,15 @@ let hasThankedDeveloper = false;
 
 export type ComponentConstructor = new (element: HTMLElement, dispatcher: ComponentsDispatcher) => object;
 
+export type ComponentLoader = (componentName: string) => Promise<{ default: ComponentConstructor }>;
+
+const loadComponentFromWebpackAlias: ComponentLoader = componentName =>
+  import(/* webpackChunkName: `component-[request]` */ `COMPONENTS/${componentName}`);
+
 export default class ComponentsDispatcher {
   readonly events: EventBus;
   readonly logger: Logger;
+  private readonly loadComponent: ComponentLoader;
   private componentSelector: string;
   private componentAttribute: string;
   private importedComponents: Map<string, ComponentConstructor>;
@@ -35,8 +41,10 @@ export default class ComponentsDispatcher {
   /**
    * @param options.events share one event bus between dispatchers or with code outside components
    * @param options.logger defaults to a logger enabled only in development builds
+   * @param options.loadComponent imports a component module by name in async mode; defaults to the webpack `COMPONENTS` alias
    */
-  constructor(options: { events?: EventBus; logger?: Logger } = {}) {
+  constructor(options: { events?: EventBus; logger?: Logger; loadComponent?: ComponentLoader } = {}) {
+    this.loadComponent = options.loadComponent ?? loadComponentFromWebpackAlias;
     this.logger = options.logger ?? new Logger({ scope: 'dispatcher' });
     this.events = options.events ?? new EventBus({ logger: this.logger.withScope('events') });
     if (!hasThankedDeveloper) {
@@ -134,8 +142,8 @@ export default class ComponentsDispatcher {
     const pending = this.pendingImports.get(compName);
     if (pending) return pending;
 
-    const promise = import(/* webpackChunkName: `component-[request]` */ `COMPONENTS/${compName}`).then(mod => {
-      const ComponentClass = mod.default as ComponentConstructor;
+    const promise = this.loadComponent(compName).then(mod => {
+      const ComponentClass = mod.default;
       this.importedComponents.set(compName, ComponentClass);
       this.pendingImports.delete(compName);
       return ComponentClass;

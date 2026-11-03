@@ -177,6 +177,43 @@ describe('ComponentsDispatcher', () => {
     });
   });
 
+  describe('loadComponent option', () => {
+    it('imports components through the given loader instead of the webpack alias', async () => {
+      const loadComponent = vi.fn(async () => ({ default: MockComponent }));
+      dispatcher = new ComponentsDispatcher({ loadComponent });
+      const el = document.createElement('div');
+      el.dataset.component = 'AnyName';
+      document.body.appendChild(el);
+
+      await dispatcher.importAsyncComponents();
+
+      expect(loadComponent).toHaveBeenCalledWith('AnyName');
+      expect(el.dataset.initialized).toBe('true');
+    });
+
+    it('calls the loader once per component name across repeated imports', async () => {
+      const loadComponent = vi.fn(async () => ({ default: MockComponent }));
+      dispatcher = new ComponentsDispatcher({ loadComponent });
+      document.body.innerHTML = '<div data-component="AnyName"></div><div data-component="AnyName"></div>';
+
+      await dispatcher.importAsyncComponents();
+      document.body.insertAdjacentHTML('beforeend', '<div data-component="AnyName"></div>');
+      await dispatcher.importAsyncComponents();
+
+      expect(loadComponent).toHaveBeenCalledTimes(1);
+      expect(dispatcher.APP_COMPONENTS.size).toBe(3);
+    });
+
+    it('reports a rejected loader on every element without throwing', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      dispatcher = new ComponentsDispatcher({ loadComponent: () => Promise.reject(new Error('not found')) });
+      document.body.innerHTML = '<div data-component="Missing"></div>';
+
+      await expect(dispatcher.importAsyncComponents()).resolves.toBeUndefined();
+      expect(dispatcher.APP_COMPONENTS.size).toBe(0);
+    });
+  });
+
   describe('observeDomChanges', () => {
     let observerCleanup: (() => void) | null = null;
 
