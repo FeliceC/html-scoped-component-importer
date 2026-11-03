@@ -27,6 +27,7 @@
           <button type="button" data-level="info">✨ info</button>
           <button type="button" data-level="warn">🙈 warn</button>
           <button type="button" data-level="error">💥 error</button>
+          <button type="button" data-level="celebrate">⭐ celebrate</button>
         </div>
 <pre><code class="language-typescript">import { Logger } from 'html-scoped-component-importer';
 
@@ -34,7 +35,8 @@ const logger = new Logger({ scope: 'playground' });
 logger.debug('Fine-grained detail');
 logger.info('Something happened', { details: 'go here' });
 logger.warn('Careful');
-logger.error('Something broke', new Error('oops'));</code></pre>
+logger.error('Something broke', new Error('oops'));
+logger.celebrate('Shipped it! 🎉');                // console.log with a gradient badge</code></pre>
       </section>
 
       <section class="card card--pink" aria-labelledby="scopes-title">

@@ -468,7 +468,7 @@ describe('ComponentsDispatcher collaboration tools', () => {
   });
 
   it('thanks the developer at most once per page', () => {
-    vi.spyOn(console, 'info').mockImplementation(() => {});
+    vi.spyOn(console, 'log').mockImplementation(() => {});
     const logger = new Logger({ enabled: true });
     const messages: string[] = [];
     logger.onEntry(entry => messages.push(entry.message));
@@ -476,7 +476,7 @@ describe('ComponentsDispatcher collaboration tools', () => {
     new ComponentsDispatcher({ logger });
     new ComponentsDispatcher({ logger });
 
-    expect(messages.filter(message => message.includes('Star it on GitHub')).length).toBeLessThanOrEqual(1);
+    expect(messages.filter(message => message.includes('Leave a star')).length).toBeLessThanOrEqual(1);
   });
 
   it('uses the event bus passed in the options', () => {

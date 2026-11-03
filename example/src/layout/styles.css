@@ -147,4 +147,7 @@
     .level-buttons button[data-level="info"] { background: var(--violet); }
     .level-buttons button[data-level="warn"] { background: var(--sun); }
     .level-buttons button[data-level="error"] { background: var(--danger); }
+    .level-buttons button[data-level="celebrate"] { background: linear-gradient(90deg, var(--violet), var(--pink), var(--sun)); }
     .scoped-box { width: 100%; background: var(--surface); border: 2px dashed var(--sky); border-radius: 14px; padding: 12px; min-height: 52px; display: flex; gap: 14px; flex-wrap: wrap; }
+    .log-entry--celebrate { border-left: 0; background: linear-gradient(120deg, var(--violet-soft), var(--pink-soft), var(--sun-soft)); box-shadow: inset 0 0 0 2px #fff; }
+    .log-entry--celebrate .log-entry__message { white-space: pre-line; font-weight: 600; }

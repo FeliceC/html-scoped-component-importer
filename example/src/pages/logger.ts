@@ -9,7 +9,8 @@ const LEVEL_MESSAGES = {
   [LogLevel.Debug]: 'Fine-grained detail for curious developers',
   [LogLevel.Info]: 'Something nice happened',
   [LogLevel.Warn]: 'Careful, this looks odd',
-  [LogLevel.Error]: 'Something broke (on purpose)'
+  [LogLevel.Error]: 'Something broke (on purpose)',
+  [LogLevel.Celebrate]: 'Shipped it! 🎉\nCelebrations get their own banner style'
 } as const;
 
 document.querySelectorAll<HTMLButtonElement>('[data-level]').forEach(button => {

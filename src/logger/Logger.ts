@@ -4,7 +4,8 @@ export enum LogLevel {
   Debug = 'debug',
   Info = 'info',
   Warn = 'warn',
-  Error = 'error'
+  Error = 'error',
+  Celebrate = 'celebrate'
 }
 
 export type LogEntry = {
@@ -21,7 +22,16 @@ const LEVEL_STYLES = {
   [LogLevel.Debug]: { emoji: '🔍', color: '#8a8a85' },
   [LogLevel.Info]: { emoji: '✨', color: '#2f6fde' },
   [LogLevel.Warn]: { emoji: '🙈', color: '#c27c0e' },
-  [LogLevel.Error]: { emoji: '💥', color: '#d93b3b' }
+  [LogLevel.Error]: { emoji: '💥', color: '#d93b3b' },
+  [LogLevel.Celebrate]: { emoji: '⭐', color: 'linear-gradient(90deg,#7c5cff,#ff5fa2,#ffb020)' }
+} as const;
+
+const CONSOLE_METHODS = {
+  [LogLevel.Debug]: 'debug',
+  [LogLevel.Info]: 'info',
+  [LogLevel.Warn]: 'warn',
+  [LogLevel.Error]: 'error',
+  [LogLevel.Celebrate]: 'log'
 } as const;
 
 export default class Logger {
@@ -64,6 +74,10 @@ export default class Logger {
     this.write(LogLevel.Error, message, details);
   }
 
+  celebrate(message: string, details?: unknown): void {
+    this.write(LogLevel.Celebrate, message, details);
+  }
+
   private write(level: LogLevel, message: string, details?: unknown): void {
     if (!this.enabled) return;
 
@@ -73,12 +87,12 @@ export default class Logger {
       '%c🧩 %s%c %s %s',
       `background:${color};color:#fff;border-radius:4px;padding:1px 6px;font-weight:600`,
       this.scope,
-      `color:${color}`,
+      `color:${level === LogLevel.Celebrate ? '#7c5cff' : color};font-weight:${level === LogLevel.Celebrate ? 700 : 400}`,
       emoji,
       message
     ];
     // eslint-disable-next-line no-console -- the logger is the single sanctioned console writer
-    console[level](...consoleArguments, ...(details === undefined ? [] : [details]));
+    console[CONSOLE_METHODS[level]](...consoleArguments, ...(details === undefined ? [] : [details]));
     this.entryListeners.forEach(listener => listener(entry));
   }
 }

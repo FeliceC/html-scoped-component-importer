@@ -41,7 +41,11 @@ export default class ComponentsDispatcher {
     this.events = options.events ?? new EventBus({ logger: this.logger.withScope('events') });
     if (!hasThankedDeveloper) {
       hasThankedDeveloper = true;
-      this.logger.info('Thanks for using html-scoped-component-importer! ⭐ Star it on GitHub: https://github.com/FeliceC/html-scoped-component-importer');
+      this.logger.celebrate([
+        'Thanks for using html-scoped-component-importer! 💜',
+        '🌟 Enjoying it? Leave a star → https://github.com/FeliceC/html-scoped-component-importer',
+        '👋 Made with care by Felice Caricati'
+      ].join('\n'));
     }
     this.componentSelector = '[data-component]';
     this.componentAttribute = 'component';

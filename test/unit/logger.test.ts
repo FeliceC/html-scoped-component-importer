@@ -23,6 +23,18 @@ describe('Logger', () => {
     expect(consoleInfo.mock.calls[0][0]).toBe('%c🧩 %s%c %s %s');
   });
 
+  it('celebrates through console.log with its own level', () => {
+    const consoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const logger = new Logger({ enabled: true });
+    const levels: LogLevel[] = [];
+    logger.onEntry(entry => levels.push(entry.level));
+
+    logger.celebrate('thank you');
+
+    expect(consoleLog).toHaveBeenCalledTimes(1);
+    expect(levels).toEqual([LogLevel.Celebrate]);
+  });
+
   it('notifies entry listeners with level, scope and details', () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {});
     const logger = new Logger({ scope: 'cart', enabled: true });
