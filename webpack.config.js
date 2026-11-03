@@ -9,7 +9,8 @@ const DEMO_PAGES = [
   { name: 'loading', fileName: 'loading.html', label: '⚡ Loading', title: 'Loading Components', description: 'Async chunks, sync registries, options, several components per element, DOM observation and the error overlay.' },
   { name: 'events', fileName: 'events.html', label: '📬 Event bus', title: 'Event Bus', description: 'Components talk through named events; a visible queue keeps events for listeners that arrive later.' },
   { name: 'state', fileName: 'state.html', label: '🛒 Shared state', title: 'Shared State', description: 'One immutable object shared by many components, with subscribers notified on every change.' },
-  { name: 'logger', fileName: 'logger.html', label: '📜 Logger', title: 'Logger', description: 'Colourful scoped logs in development, silent in production, with a listener API.' }
+  { name: 'logger', fileName: 'logger.html', label: '📜 Logger', title: 'Logger', description: 'Colourful scoped logs in development, silent in production, with a listener API.' },
+  { name: 'reference', fileName: 'reference.html', label: '📖 Reference', title: 'Technical Reference', description: 'Exact signatures, lifecycle, ordering and error semantics of the dispatcher, event bus, shared state and logger.' }
 ];
 
 const readLayoutPartial = fileName => fs.readFileSync(path.join(demoDirectory, 'layout', fileName), 'utf8');

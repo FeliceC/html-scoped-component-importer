@@ -152,3 +152,20 @@
     .log-entry--celebrate { border-left: 0; background: linear-gradient(120deg, var(--violet-soft), var(--pink-soft), var(--sun-soft)); box-shadow: inset 0 0 0 2px #fff; }
     .log-entry--celebrate .log-entry__message { white-space: pre-line; font-weight: 600; }
     .credits { text-align: center; font-size: 13px; color: var(--muted); margin: 14px 0 0; }
+    .layout--docs { grid-template-columns: 220px minmax(0, 1fr); }
+    @media (max-width: 980px) { .layout--docs { grid-template-columns: minmax(0, 1fr); } .docs-toc { position: static; } }
+    .docs-toc { position: sticky; top: 16px; display: grid; gap: 4px; background: var(--surface); border-radius: 18px; padding: 16px; box-shadow: var(--shadow); font-size: 14px; }
+    .docs-toc strong { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 4px; }
+    .docs-toc a { text-decoration: none; font-weight: 600; padding: 4px 8px; border-radius: 8px; }
+    .docs-toc a:hover { background: var(--violet-soft); }
+    .docs { background: var(--surface); border-radius: 22px; box-shadow: var(--shadow); padding: 8px 28px 28px; min-width: 0; }
+    .docs section { padding-top: 18px; scroll-margin-top: 16px; }
+    .docs h2 { font-size: 22px; margin: 10px 0 10px; padding-bottom: 6px; border-bottom: 3px solid var(--violet-soft); }
+    .docs h3 { font-size: 16px; margin: 16px 0 6px; }
+    .docs p, .docs li { font-size: 15px; }
+    .docs ul, .docs ol { padding-left: 22px; display: grid; gap: 6px; }
+    .docs pre { margin: 12px 0; }
+    .docs table { width: 100%; border-collapse: collapse; font-size: 13.5px; display: block; overflow-x: auto; }
+    .docs th, .docs td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--border); }
+    .docs th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+    .docs td code { font-size: 12.5px; }

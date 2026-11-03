@@ -79,9 +79,13 @@ export function highlightJson(element: HTMLElement, value: unknown): void {
 }
 
 /** Wires the live log and code highlighting, then starts the async and sync dispatchers shared by every page. */
+export function highlightAllCode(): void {
+  highlighter.highlightAll();
+}
+
 export function setupPage(): { asyncDispatcher: ComponentDispatcher; syncDispatcher: ComponentDispatcher } {
   logger.onEntry(renderLogEntry);
-  highlighter.highlightAll();
+  highlightAllCode();
 
   const asyncDispatcher = new ComponentDispatcher({ events, logger: logger.withScope('⚡ dispatcher') });
   asyncDispatcher.importAsyncComponents().then(() => asyncDispatcher.observeDomChanges());

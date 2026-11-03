@@ -7,7 +7,7 @@ A lightweight TypeScript library for declaratively binding JavaScript classes to
 
 ---
 
-**[▶ Live demo](https://felicec.github.io/html-scoped-component-importer/)**: every integration mode on one page, with the event queue and the log visible in real time.
+**[▶ Live demo](https://felicec.github.io/html-scoped-component-importer/)**: guided pages for every feature, with the event queue and the log visible in real time · **[📖 Technical reference](https://felicec.github.io/html-scoped-component-importer/reference.html)**: exact signatures, lifecycle, ordering and error semantics.
 
 ## Table of Contents
 

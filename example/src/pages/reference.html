@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= pageTitle %></title>
+  <meta name="description" content="<%= pageDescription %>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧩</text></svg>">
+  <style>
+<%= styles %>
+  </style>
+</head>
+<body>
+<%= navigation %>
+  <header>
+    <h1>📖 <span>Technical reference</span></h1>
+    <p>Exact signatures, lifecycle, ordering and error semantics of every public API. For guided examples, see the feature pages.</p>
+  </header>
+
+  <div class="layout layout--docs">
+    <nav class="docs-toc" aria-label="On this page">
+      <strong>On this page</strong>
+      <a href="#package">Package and requirements</a>
+      <a href="#lifecycle">Component lifecycle</a>
+      <a href="#dispatcher">ComponentDispatcher</a>
+      <a href="#component-contract">Component contract</a>
+      <a href="#observer">DOM observation</a>
+      <a href="#errors">Error handling</a>
+      <a href="#event-bus">EventBus</a>
+      <a href="#shared-state">SharedState</a>
+      <a href="#logger">Logger</a>
+      <a href="#environment">Development detection</a>
+      <a href="#performance">Performance</a>
+    </nav>
+
+    <main class="docs">
+      <section id="package">
+        <h2>Package and requirements</h2>
+        <ul>
+          <li>The package ships <strong>TypeScript sources</strong> (<code>main: ./src/index.ts</code>): your build must compile TypeScript from <code>node_modules</code> (ts-loader, esbuild, Vite, swc… all do by default or with an <code>include</code>).</li>
+          <li>No runtime dependencies. Uses <code>crypto.randomUUID()</code>, <code>MutationObserver</code> and dynamic <code>import()</code>: any evergreen browser (Chrome/Edge 92+, Firefox 95+, Safari 15.4+).</li>
+          <li><strong>Async mode requires webpack</strong> and a <code>COMPONENTS</code> alias: the import path is built at runtime (<code>import(`COMPONENTS/${name}`)</code>) and only webpack turns it into a context module with one chunk per file. Vite, Rollup and esbuild leave it unresolved. Sync mode works with any bundler.</li>
+        </ul>
+<pre><code class="language-typescript">import {
+  ComponentDispatcher, type ComponentConstructor,
+  EventBus, type QueuedEvent,
+  SharedState,
+  Logger, LogLevel, type LogEntry
+} from 'html-scoped-component-importer';</code></pre>
+      </section>
+
+      <section id="lifecycle">
+        <h2>Component lifecycle</h2>
+        <ol>
+          <li><strong>Scan.</strong> For each root (default <code>document.body</code>), the root itself and its descendants matching the selector are collected; elements that already have <code>data-uuid</code> are skipped, duplicates across roots are removed.</li>
+          <li><strong>Mark.</strong> Every collected element receives <code>data-uuid</code> (<code>crypto.randomUUID()</code>) <em>before</em> construction. An element is therefore processed at most once per dispatcher, even if its constructor throws.</li>
+          <li><strong>Group.</strong> The attribute value is split on <code>,</code> and trimmed: <code>"A, B"</code> binds two components to the same element.</li>
+          <li><strong>Construct.</strong> <code>new Component(element, dispatcher)</code>. Instances are stored in <code>APP_COMPONENTS</code> under the element's uuid.</li>
+          <li><strong>Destroy.</strong> With <code>observeDomChanges()</code>, when the element leaves the document every instance on it gets <code>_destroy()</code> (if defined) and the entry is removed.</li>
+        </ol>
+        <h3>Ordering</h3>
+        <ul>
+          <li>Collected elements are processed in <strong>reverse document order</strong> (later and deeper elements first).</li>
+          <li><strong>Sync:</strong> by registry key order, then element order. All constructors run synchronously before the returned promise resolves.</li>
+          <li><strong>Async:</strong> one chunk import per component name, started in parallel; each name's elements are constructed as soon as its chunk resolves, so ordering across names depends on the network.</li>
+        </ul>
+      </section>
+
+      <section id="dispatcher">
+        <h2>ComponentDispatcher</h2>
+<pre><code class="language-typescript">new ComponentDispatcher(options?: { events?: EventBus; logger?: Logger })</code></pre>
+        <table>
+          <thead><tr><th scope="col">Member</th><th scope="col">Signature</th><th scope="col">Behaviour</th></tr></thead>
+          <tbody>
+            <tr><td><code>importComponents</code></td><td><code>(registry: Record&lt;string, ComponentConstructor&gt;, target?: Element | Element[]) =&gt; Promise&lt;void&gt;</code></td><td>Sync mode. Binds names present in <code>registry</code>; unknown names are ignored. Switches the dispatcher to sync mode for the observer.</td></tr>
+            <tr><td><code>importAsyncComponents</code></td><td><code>(target?: Element | Element[]) =&gt; Promise&lt;void&gt;</code></td><td>Async mode. Imports <code>COMPONENTS/&lt;name&gt;</code> once per name (cached; concurrent requests share one import; a failed import is retried on the next scan). Resolves when every constructor ran.</td></tr>
+            <tr><td><code>observeDomChanges</code></td><td><code>() =&gt; () =&gt; void</code></td><td>Starts a <code>MutationObserver</code> on <code>document.body</code>; returns the disconnect function. See <a href="#observer">DOM observation</a>.</td></tr>
+            <tr><td><code>Selector</code></td><td><code>set (selector: string)</code></td><td>CSS selector used to find components (default <code>[data-component]</code>; empty string resets). The attribute holding the names is the first <code>data-*</code> in the selector.</td></tr>
+            <tr><td><code>compAttribute</code></td><td><code>get: string</code></td><td>That attribute name without <code>data-</code>, e.g. <code>sync-component</code>.</td></tr>
+            <tr><td><code>APP_COMPONENTS</code></td><td><code>get: Map&lt;string, object[]&gt;</code></td><td>Live instances keyed by <code>data-uuid</code>, one array entry per component on the element. <em>Arrays since 3.0.0.</em></td></tr>
+            <tr><td><code>events</code></td><td><code>readonly EventBus</code></td><td>The bus from the options, or a new one logging under <code>events</code>.</td></tr>
+            <tr><td><code>logger</code></td><td><code>readonly Logger</code></td><td>The logger from the options, or a new one scoped <code>dispatcher</code>.</td></tr>
+            <tr><td><code>createState</code></td><td><code>&lt;State extends object&gt;(name: string, initialState: State) =&gt; SharedState&lt;State&gt;</code></td><td>A <code>SharedState</code> logging under <code>state:&lt;name&gt;</code>.</td></tr>
+            <tr><td><code>createComponents</code> / <code>createAsyncComponents</code></td><td>—</td><td>Legacy aliases of the two import methods without <code>target</code>.</td></tr>
+          </tbody>
+        </table>
+        <p>Run one dispatcher per mode: the observer re-uses the mode (and sync registry) of the <strong>last</strong> import call on that instance.</p>
+      </section>
+
+      <section id="component-contract">
+        <h2>Component contract</h2>
+<pre><code class="language-typescript">type ComponentConstructor = new (element: HTMLElement, dispatcher: ComponentDispatcher) =&gt; object;
+
+export default class Tooltip {            // async mode: default export of COMPONENTS/Tooltip.ts
+  constructor(element: HTMLElement, dispatcher: ComponentDispatcher) {}
+  _destroy?(): void {}                     // optional, called once when the element is removed
+}</code></pre>
+        <ul>
+          <li>The constructor is the only lifecycle hook for setup; it must be synchronous (start async work inside it if needed).</li>
+          <li>Release listeners, intervals and subscriptions in <code>_destroy()</code>; <code>EventBus.on</code> and <code>SharedState.subscribe</code> return the function to call.</li>
+          <li>Moving an element (remove and re-insert in the same task) keeps its instances: <code>_destroy()</code> is not called.</li>
+        </ul>
+      </section>
+
+      <section id="observer">
+        <h2>DOM observation</h2>
+        <ul>
+          <li>Observes <code>childList</code> with <code>subtree: true</code> on <code>document.body</code>.</li>
+          <li>Each observer callback is handled as one batch: all connected added nodes become the roots of a single scan.</li>
+          <li>Removed nodes still connected (moved) are ignored; otherwise the node and its descendants are destroyed.</li>
+          <li>Attribute changes are not observed: changing <code>data-component</code> on an existing element does nothing.</li>
+        </ul>
+      </section>
+
+      <section id="errors">
+        <h2>Error handling</h2>
+        <ul>
+          <li>A constructor that throws, or a chunk that fails to import, never stops other components.</li>
+          <li><strong>Development builds:</strong> the element's children are replaced by an overlay (message and stack trace) and the error goes to <code>dispatcher.logger.error</code>.</li>
+          <li><strong>Other builds:</strong> <code>console.error</code> only, the DOM is untouched.</li>
+          <li>The element keeps its <code>data-uuid</code>, so it is not retried; insert a new element to try again.</li>
+          <li>Listener and subscriber errors in <code>EventBus</code> and <code>SharedState</code> are caught per listener and logged; the remaining listeners still run.</li>
+        </ul>
+      </section>
+
+      <section id="event-bus">
+        <h2>EventBus</h2>
+<pre><code class="language-typescript">new EventBus(options?: { maximumQueuedPerEvent?: number /* 50 */; logger?: Logger })
+
+on&lt;Payload&gt;(eventName: string, listener: (payload: Payload) =&gt; void): () =&gt; void
+emit&lt;Payload&gt;(eventName: string, payload?: Payload): void
+get queuedEvents(): QueuedEvent[]          // copy, oldest first
+onQueueChange(listener: (queuedEvents: QueuedEvent[]) =&gt; void): () =&gt; void
+
+type QueuedEvent = { eventName: string; payload: unknown; queuedAt: number /* Date.now() */ };</code></pre>
+        <ul>
+          <li>Delivery is <strong>synchronous</strong>, in subscription order.</li>
+          <li><code>emit</code> with at least one listener for that name delivers immediately and queues nothing.</li>
+          <li><code>emit</code> with no listener appends to the queue. Beyond <code>maximumQueuedPerEvent</code> for that name, the oldest event of that name is dropped (with a warning).</li>
+          <li><code>on</code> registers the listener, then synchronously replays every queued event of that name to it in order and removes them from the queue. Only that first listener receives them.</li>
+          <li>When every listener of a name unsubscribed, later emits are queued again.</li>
+          <li><code>onQueueChange</code> fires after each enqueue, drop and delivery with a fresh snapshot.</li>
+        </ul>
+      </section>
+
+      <section id="shared-state">
+        <h2>SharedState</h2>
+<pre><code class="language-typescript">new SharedState&lt;State extends object&gt;(initialState: State, options?: { logger?: Logger })
+
+get(): Readonly&lt;State&gt;
+set(update: Partial&lt;State&gt; | ((current: Readonly&lt;State&gt;) =&gt; Partial&lt;State&gt;)): void
+subscribe(listener: (next: Readonly&lt;State&gt;, previous: Readonly&lt;State&gt;) =&gt; void): () =&gt; void</code></pre>
+        <ul>
+          <li><code>set</code> shallow-merges into a new object frozen with <code>Object.freeze</code> (shallow: nested arrays and objects are not frozen, replace them instead of mutating).</li>
+          <li>Subscribers run synchronously after every <code>set</code>, even if no value changed; compare <code>next</code> and <code>previous</code> to skip work.</li>
+          <li><code>subscribe</code> does not call the listener immediately: render once yourself, as in the examples.</li>
+        </ul>
+      </section>
+
+      <section id="logger">
+        <h2>Logger</h2>
+<pre><code class="language-typescript">new Logger(options?: { scope?: string /* 'app' */; enabled?: boolean /* development builds only */ })
+
+debug | info | warn | error | celebrate (message: string, details?: unknown): void
+withScope(scope: string): Logger            // same enabled flag, shared entry listeners
+onEntry(listener: (entry: LogEntry) =&gt; void): () =&gt; void
+
+type LogEntry = { level: LogLevel; scope: string; message: string; details?: unknown; timestamp: number };
+enum LogLevel { Debug = 'debug', Info = 'info', Warn = 'warn', Error = 'error', Celebrate = 'celebrate' }</code></pre>
+        <ul>
+          <li>Each level writes to the matching <code>console</code> method (<code>celebrate</code> uses <code>console.log</code>), with a fixed format string: caller text is never interpreted as <code>%</code> directives.</li>
+          <li>When disabled nothing is written and no entry is emitted.</li>
+          <li>The first <code>ComponentDispatcher</code> created on a page celebrates once through its logger; disable that logger to silence it.</li>
+        </ul>
+      </section>
+
+      <section id="environment">
+        <h2>Development detection</h2>
+        <p>Development behaviour (error overlay, logger enabled by default) is on only when the bundler replaced <code>process.env.NODE_ENV</code> with <code>"development"</code>. If the expression is not replaced, accessing <code>process</code> throws inside a <code>try</code> and the library falls back to production behaviour.</p>
+      </section>
+
+      <section id="performance">
+        <h2>Performance</h2>
+        <ul>
+          <li>One <code>querySelectorAll</code> per root and one pass over the matches: cost grows with the number of elements, not with elements × component names.</li>
+          <li>Sync construction allocates no promise per element; the observer runs one scan per mutation batch.</li>
+          <li>Reference numbers (headless Chrome, median, <code>yarn bench</code>): 10,000 elements with 100 component types set up in ≈18 ms; 5,000 elements appended one by one under observation in ≈16 ms.</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
