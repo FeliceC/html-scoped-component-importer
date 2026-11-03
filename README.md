@@ -2,7 +2,9 @@
 
 A lightweight TypeScript library for declaratively binding JavaScript classes to HTML elements via `data-component` attributes. Supports both synchronous and dynamic (async) component loading, DOM observation for SPAs, and a built-in dev error overlay.
 
-[![npm version](https://badge.fury.io/js/html-scoped-component-importer.svg)](https://www.npmjs.com/package/html-scoped-component-importer)
+[![npm version](https://img.shields.io/npm/v/html-scoped-component-importer)](https://www.npmjs.com/package/html-scoped-component-importer)
+[![npm downloads](https://img.shields.io/npm/dm/html-scoped-component-importer)](https://www.npmjs.com/package/html-scoped-component-importer)
+[![CI](https://github.com/FeliceC/html-scoped-component-importer/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/FeliceC/html-scoped-component-importer/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
