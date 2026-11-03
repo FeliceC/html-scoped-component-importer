@@ -112,6 +112,17 @@
     .notifications li { background: var(--surface); border-radius: 12px; padding: 7px 10px; font-size: 13px; box-shadow: var(--shadow); animation: pop .35s cubic-bezier(.3, 1.6, .5, 1); }
     .hint { font-size: 13.5px; color: var(--muted); background: var(--surface); border-radius: 12px; padding: 10px 14px; margin: 0 0 14px; box-shadow: var(--shadow); }
 
+    .pipeline--two { grid-template-columns: 1fr 1.6fr; }
+    .stage--state { background: var(--sun-soft); }
+    .stage--inspector { background: #f3f0ff; }
+    .state-inspector { min-height: 120px; }
+    .guide-title { font-size: 15px; margin: 22px 0 10px; }
+    .guide { margin: 0; padding: 0; list-style: none; counter-reset: guide-step; display: grid; gap: 14px; }
+    .guide > li { counter-increment: guide-step; display: grid; grid-template-columns: 34px minmax(0, 1fr); column-gap: 12px; }
+    .guide > li::before { content: counter(guide-step); grid-row: 1 / span 2; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 800; }
+    .guide > li > p { margin: 3px 0 8px; font-size: 14.5px; }
+    .rules { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+    .rules li { background: var(--accent-soft); border-radius: 12px; padding: 9px 12px; font-size: 14px; }
     aside { position: sticky; top: 16px; }
     .panel { background: var(--surface); border-radius: 22px; box-shadow: var(--shadow); overflow: hidden; }
     .panel h2 { font-size: 15px; margin: 0; padding: 14px 18px; background: linear-gradient(90deg, var(--violet-soft), var(--pink-soft)); }
@@ -139,14 +150,13 @@
   <div class="layout">
     <main class="cards">
       <section class="card card--pink" aria-labelledby="events-title">
-        <h2 id="events-title"><span class="emoji" aria-hidden="true">📬</span>Events with a queue + shared state</h2>
-        <p>Products update a <code>SharedState</code> (the cart badge subscribes to it) and emit <code>notify</code>. While no listener is connected, events wait in the <strong>queue</strong>; connect the listener and they are delivered in order.</p>
-        <p class="hint">👉 Add a few products, then press <strong>Connect listener</strong>. Disconnect it and try again.</p>
+        <h2 id="events-title"><span class="emoji" aria-hidden="true">📬</span>Event bus with a queue</h2>
+        <p>Components talk without importing each other: one <strong>emits</strong> a named event, others <strong>listen</strong> to it. If an event is emitted while nobody listens yet (for example a component that loads later), it waits in a <strong>queue</strong> instead of being lost.</p>
+        <p class="hint">👉 Add a few products while the listener is <em>offline</em>: they pile up in the queue. Press <strong>Connect listener</strong> and they are delivered in order. Disconnect and try again.</p>
         <div class="pipeline">
           <div class="stage">
             <h3>Emitter</h3>
             <div data-component="ProductList"></div>
-            <span class="badge" data-component="CartBadge"></span>
           </div>
           <div class="stage stage--queue">
             <h3>Queue <span class="queue-count" id="queue-count">0</span></h3>
@@ -158,13 +168,91 @@
             <div id="notification-slot"></div>
           </div>
         </div>
-<pre><code class="language-typescript">const events = new EventBus();
-const cart = new SharedState({ items: [] });
 
-cart.set(state =&gt; ({ items: [...state.items, product] }));
-events.emit('notify', 'Notebook added');           // queued while nobody listens…
-events.on('notify', message =&gt; toast(message));     // …delivered to the first listener
-events.onQueueChange(queued =&gt; renderQueue(queued)); // what this card uses</code></pre>
+        <h3 class="guide-title">How to use it</h3>
+        <ol class="guide">
+          <li>
+            <p><strong>Create one bus</strong> and share it. Either export it from a module, or use the one every dispatcher already has: <code>dispatcher.events</code>.</p>
+<pre><code class="language-typescript">// shared.ts
+import { EventBus } from 'html-scoped-component-importer';
+
+export const events = new EventBus();</code></pre>
+          </li>
+          <li>
+            <p><strong>Emit</strong> from any component with an event name and a payload.</p>
+<pre><code class="language-typescript">// components/ProductList.ts
+button.addEventListener('click', () => {
+  events.emit('notify', `${product.name} added to the cart`);
+});</code></pre>
+          </li>
+          <li>
+            <p><strong>Listen</strong> in another component. <code>on()</code> returns an unsubscribe function: call it in <code>_destroy()</code> so a removed component stops listening.</p>
+<pre><code class="language-typescript">// components/NotificationCenter.ts
+export default class NotificationCenter {
+  private readonly unsubscribe: () =&gt; void;
+
+  constructor(element: HTMLElement) {
+    this.unsubscribe = events.on&lt;string&gt;('notify', message =&gt; showToast(message));
+  }
+
+  _destroy() {
+    this.unsubscribe();
+  }
+}</code></pre>
+          </li>
+        </ol>
+
+        <h3 class="guide-title">Queue rules</h3>
+        <ul class="rules">
+          <li>⏳ An event is queued <strong>only when its name has no listener</strong>; otherwise it is delivered immediately.</li>
+          <li>🥇 Queued events go to the <strong>first listener</strong> that subscribes to that name, in emit order, then leave the queue.</li>
+          <li>🧺 At most <strong>50 events per name</strong> are kept (oldest dropped first): <code>new EventBus({ maximumQueuedPerEvent: 20 })</code>.</li>
+          <li>🔭 Inspect it with <code>events.queuedEvents</code> or <code>events.onQueueChange(queued =&gt; …)</code>, which is how the queue above is drawn.</li>
+        </ul>
+      </section>
+
+      <section class="card card--sun" aria-labelledby="state-title">
+        <h2 id="state-title"><span class="emoji" aria-hidden="true">🛒</span>Shared state</h2>
+        <p>A <code>SharedState</code> holds one object that several components read and update. Every change notifies the subscribers, so the badge below re-renders by itself when the product buttons above add to the cart.</p>
+        <div class="pipeline pipeline--two">
+          <div class="stage stage--state">
+            <h3>Subscriber</h3>
+            <span class="badge" data-component="CartBadge"></span>
+            <button type="button" class="secondary" id="clear-cart">🧹 Empty the cart</button>
+          </div>
+          <div class="stage stage--inspector">
+            <h3>Current state</h3>
+<pre class="state-inspector"><code id="state-inspector" class="language-json"></code></pre>
+          </div>
+        </div>
+
+        <h3 class="guide-title">How to use it</h3>
+        <ol class="guide">
+          <li>
+            <p><strong>Create the state</strong> once with its initial value and share it (a module export, or <code>dispatcher.createState('cart', …)</code> to get its changes in the log).</p>
+<pre><code class="language-typescript">// shared.ts
+import { SharedState } from 'html-scoped-component-importer';
+
+export const cartState = new SharedState({ items: [] as Product[] });</code></pre>
+          </li>
+          <li>
+            <p><strong>Update</strong> with <code>set()</code>: pass the changed keys, or a function of the current state. Changes are shallow-merged and the state is frozen, so never mutate it directly.</p>
+<pre><code class="language-typescript">// components/ProductList.ts
+cartState.set(current =&gt; ({ items: [...current.items, product] }));
+
+// anywhere
+cartState.set({ items: [] });</code></pre>
+          </li>
+          <li>
+            <p><strong>Read and subscribe</strong>: <code>get()</code> returns the current value, <code>subscribe()</code> calls you with the next and previous state and returns an unsubscribe function for <code>_destroy()</code>.</p>
+<pre><code class="language-typescript">// components/CartBadge.ts
+const render = () =&gt; {
+  element.textContent = `🛒 ${cartState.get().items.length} item(s)`;
+};
+render();
+this.unsubscribe = cartState.subscribe(render);</code></pre>
+          </li>
+        </ol>
       </section>
 
       <section class="card card--violet" aria-labelledby="async-title">

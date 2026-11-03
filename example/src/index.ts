@@ -1,9 +1,10 @@
 import { ComponentDispatcher, type LogEntry, type QueuedEvent } from '../../src/index';
 import Clock from './registry/Clock';
-import { events, logger } from './shared';
+import { cartState, events, logger } from './shared';
 import highlighter from 'highlight.js/lib/core';
 import typescript from 'highlight.js/lib/languages/typescript';
 import xml from 'highlight.js/lib/languages/xml';
+import json from 'highlight.js/lib/languages/json';
 
 const MAXIMUM_LOG_ENTRIES = 60;
 
@@ -89,6 +90,15 @@ function bindDemoControls(): void {
     listenerStatus.textContent = isConnected ? 'offline' : 'listening';
     listenerStatus.dataset.connected = String(!isConnected);
   });
+
+  document.getElementById('clear-cart')!.addEventListener('click', () => cartState.set({ items: [] }));
+}
+
+function renderStateInspector(): void {
+  const inspector = document.getElementById('state-inspector')!;
+  inspector.textContent = JSON.stringify(cartState.get(), null, 2);
+  inspector.removeAttribute('data-highlighted');
+  highlighter.highlightElement(inspector);
 }
 
 logger.onEntry(renderLogEntry);
@@ -98,7 +108,10 @@ bindDemoControls();
 
 highlighter.registerLanguage('typescript', typescript);
 highlighter.registerLanguage('html', xml);
+highlighter.registerLanguage('json', json);
 highlighter.highlightAll();
+renderStateInspector();
+cartState.subscribe(renderStateInspector);
 
 const asyncDispatcher = new ComponentDispatcher({ events, logger: logger.withScope('⚡ dispatcher') });
 asyncDispatcher.importAsyncComponents().then(() => asyncDispatcher.observeDomChanges());
