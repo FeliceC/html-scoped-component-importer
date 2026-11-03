@@ -37,6 +37,7 @@
     main { max-width: 960px; margin: 0 auto; padding: 32px 16px; }
     h1 { font-size: 24px; margin: 0 0 4px; }
     p { color: var(--muted); margin: 0 0 24px; }
+    a { color: var(--accent); }
     button {
       background: var(--accent);
       color: #fff;
@@ -79,7 +80,11 @@
 <body>
   <main>
     <h1>ComponentDispatcher benchmark</h1>
-    <p>Each scenario runs 5 times in this tab; the grid shows the last run (green = initialized component).</p>
+    <p>
+      Live benchmark of <a href="https://github.com/FeliceC/html-scoped-component-importer">html-scoped-component-importer</a>:
+      thousands of <code>data-component</code> elements bound to classes in this tab.
+      Each scenario runs 5 times; the grid shows the last run (green = initialized component).
+    </p>
     <button type="button" id="run-all">Run all scenarios</button>
     <table>
       <thead><tr><th scope="col">Scenario</th><th scope="col">Median (ms)</th><th scope="col">Min (ms)</th><th scope="col">Max (ms)</th></tr></thead>

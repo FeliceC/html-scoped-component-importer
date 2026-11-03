@@ -22,6 +22,7 @@
     "prepublishOnly": "pinst --disable",
     "postpublish": "pinst --enable",
     "bench": "node benchmark/run.mjs",
+    "bench:build": "node benchmark/run.mjs --build-only",
     "test:bundlers": "node test/bundlers/run.mjs && jest --testPathIgnorePatterns=/node_modules/ --testPathPatterns=test/bundlers"
   },
   "engines": {
