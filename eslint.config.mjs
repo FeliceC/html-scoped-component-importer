@@ -29,7 +29,7 @@ export default tseslint.config(
     ...tseslint.configs.disableTypeChecked,
   },
   {
-    files: ['test/bundlers/*.mjs'],
+    files: ['test/bundlers/*.mjs', 'benchmark/*.mjs'],
     languageOptions: {
       globals: globals.node,
     },
@@ -38,6 +38,6 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ['dist/**', 'node_modules/**'],
+    ignores: ['**/dist/**', 'node_modules/**'],
   }
 );
