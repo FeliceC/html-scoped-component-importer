@@ -17,7 +17,10 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await Promise.all(
-    Object.values(servers).map(server => new Promise(resolve => server.close(resolve)))
+    Object.values(servers).map(server => new Promise(resolve => {
+      server.close(resolve);
+      server.closeAllConnections();
+    }))
   );
 });
 
