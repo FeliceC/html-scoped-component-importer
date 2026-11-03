@@ -2,95 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dispatcher Benchmark</title>
-  <style>
-    :root {
-      --background: #f7f7f5;
-      --surface: #ffffff;
-      --text: #1d1d1b;
-      --muted: #6b6b66;
-      --border: #e2e2dc;
-      --accent: #2f6fde;
-      --pending: #d9d9d2;
-      --initialized: #2e9e5b;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --background: #161615;
-        --surface: #1f1f1d;
-        --text: #ededea;
-        --muted: #a0a09a;
-        --border: #34342f;
-        --accent: #6c9cf0;
-        --pending: #3a3a35;
-        --initialized: #4cc27e;
-      }
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      background: var(--background);
-      color: var(--text);
-      font: 15px/1.5 system-ui, -apple-system, sans-serif;
-    }
-    main { max-width: 960px; margin: 0 auto; padding: 32px 16px; }
-    h1 { font-size: 24px; margin: 0 0 4px; }
-    p { color: var(--muted); margin: 0 0 24px; }
-    a { color: var(--accent); }
-    button {
-      background: var(--accent);
-      color: #fff;
-      border: 0;
-      border-radius: 6px;
-      padding: 10px 18px;
-      font: inherit;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    button:disabled { opacity: .6; cursor: progress; }
-    table {
-      width: 100%;
-      margin: 24px 0;
-      border-collapse: collapse;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-      font-variant-numeric: tabular-nums;
-    }
-    th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
-    th { font-size: 13px; color: var(--muted); font-weight: 600; }
-    td:not(:first-child), th:not(:first-child) { text-align: right; }
-    #stage {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 2px;
-      padding: 12px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      min-height: 60px;
-    }
-    #stage [data-component] { width: 6px; height: 6px; border-radius: 1px; background: var(--pending); }
-    #stage [data-initialized] { background: var(--initialized); }
-  </style>
+  <title>Benchmark harness</title>
   <script src="./dist/bundle.js"></script>
 </head>
 <body>
-  <main>
-    <h1>ComponentDispatcher benchmark</h1>
-    <p>
-      Live benchmark of <a href="https://github.com/FeliceC/html-scoped-component-importer">html-scoped-component-importer</a>:
-      thousands of <code>data-component</code> elements bound to classes in this tab.
-      Each scenario runs 5 times; the grid shows the last run (green = initialized component).
-    </p>
-    <button type="button" id="run-all">Run all scenarios</button>
-    <table>
-      <thead><tr><th scope="col">Scenario</th><th scope="col">Median (ms)</th><th scope="col">Min (ms)</th><th scope="col">Max (ms)</th></tr></thead>
-      <tbody id="results"><tr><td colspan="4">Not run yet</td></tr></tbody>
-    </table>
-    <section id="stage" aria-label="Benchmark components"></section>
-  </main>
+  <section id="stage"></section>
 </body>
 </html>

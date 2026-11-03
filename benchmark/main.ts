@@ -124,28 +124,6 @@ const scenarios: Record<string, () => Promise<number>> = {
   }
 };
 
-const PAGE_RUNS_PER_SCENARIO = 5;
-const PAGE_SCENARIO_ORDER = ['observedAppend', 'observedRemove', 'initialScanManyTypes', 'initialScan'];
-
-async function runAllScenarios(): Promise<HTMLTableRowElement[]> {
-  const rows: HTMLTableRowElement[] = [];
-  for (let scenarioName of PAGE_SCENARIO_ORDER) {
-    let timings: number[] = [];
-    for (let runIndex = 0; runIndex < PAGE_RUNS_PER_SCENARIO; runIndex++) {
-      timings.push(await scenarios[scenarioName]());
-    }
-    timings.sort((first, second) => first - second);
-    let row = document.createElement('tr');
-    for (let cellValue of [scenarioName, timings[Math.floor(timings.length / 2)], timings[0], timings[timings.length - 1]]) {
-      let cell = document.createElement('td');
-      cell.textContent = typeof cellValue === 'number' ? cellValue.toFixed(1) : cellValue;
-      row.append(cell);
-    }
-    rows.push(row);
-  }
-  return rows;
-}
-
 declare global {
   interface Window {
     runBenchmarkScenario: (scenarioName: string) => Promise<number>;
@@ -153,12 +131,3 @@ declare global {
 }
 
 window.runBenchmarkScenario = scenarioName => scenarios[scenarioName]();
-
-document.addEventListener('DOMContentLoaded', () => {
-  const runButton = document.getElementById('run-all') as HTMLButtonElement;
-  runButton.addEventListener('click', async () => {
-    runButton.disabled = true;
-    document.getElementById('results')!.replaceChildren(...await runAllScenarios());
-    runButton.disabled = false;
-  });
-});

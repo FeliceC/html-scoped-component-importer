@@ -16,8 +16,6 @@ await build({
   outfile: path.resolve(__dirname, 'dist/bundle.js')
 });
 
-if (process.argv.includes('--build-only')) process.exit(0);
-
 const browser = await puppeteer.launch();
 const pageUrl = pathToFileURL(path.resolve(__dirname, 'index.html')).href;
 const report = {};
