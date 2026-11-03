@@ -467,6 +467,18 @@ describe('ComponentsDispatcher collaboration tools', () => {
     expect(receivedPayloads).toEqual(['hello']);
   });
 
+  it('thanks the developer at most once per page', () => {
+    vi.spyOn(console, 'info').mockImplementation(() => {});
+    const logger = new Logger({ enabled: true });
+    const messages: string[] = [];
+    logger.onEntry(entry => messages.push(entry.message));
+
+    new ComponentsDispatcher({ logger });
+    new ComponentsDispatcher({ logger });
+
+    expect(messages.filter(message => message.includes('Star it on GitHub')).length).toBeLessThanOrEqual(1);
+  });
+
   it('uses the event bus passed in the options', () => {
     const events = new EventBus({ logger: new Logger({ enabled: false }) });
 

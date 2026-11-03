@@ -3,6 +3,8 @@ import Logger from '../logger/Logger';
 import SharedState from '../state/SharedState';
 import isDevelopmentBuild from '../environment/isDevelopmentBuild';
 
+let hasThankedDeveloper = false;
+
 export type ComponentConstructor = new (element: HTMLElement, dispatcher: ComponentsDispatcher) => object;
 
 export default class ComponentsDispatcher {
@@ -37,6 +39,10 @@ export default class ComponentsDispatcher {
   constructor(options: { events?: EventBus; logger?: Logger } = {}) {
     this.logger = options.logger ?? new Logger({ scope: 'dispatcher' });
     this.events = options.events ?? new EventBus({ logger: this.logger.withScope('events') });
+    if (!hasThankedDeveloper) {
+      hasThankedDeveloper = true;
+      this.logger.info('Thanks for using html-scoped-component-importer! ⭐ Star it on GitHub: https://github.com/FeliceC/html-scoped-component-importer');
+    }
     this.componentSelector = '[data-component]';
     this.componentAttribute = 'component';
     this.importedComponents = new Map();
