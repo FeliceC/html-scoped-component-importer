@@ -4,6 +4,7 @@ type ComponentConstructor = new (element: HTMLElement) => object;
 
 export default class ComponentsDispatcher {
   private componentSelector: string;
+  private componentAttribute: string;
   private importedComponents: Map<string, ComponentConstructor>;
   private pendingImports: Map<string, Promise<ComponentConstructor>>;
   private isAsyncMode: boolean;
@@ -16,15 +17,17 @@ export default class ComponentsDispatcher {
 
   set Selector(selector: string) {
     this.componentSelector = selector || '[data-component]';
+    const match = this.componentSelector.match(/data-([^=\]]+)/);
+    this.componentAttribute = match ? match[1] : 'component';
   }
 
   get compAttribute(): string {
-    const match = this.componentSelector.match(/data-([^=\]]+)/);
-    return match ? match[1] : 'component';
+    return this.componentAttribute;
   }
 
   constructor() {
     this.componentSelector = '[data-component]';
+    this.componentAttribute = 'component';
     this.importedComponents = new Map();
     this.pendingImports = new Map();
     this.isAsyncMode = false;
@@ -47,11 +50,17 @@ export default class ComponentsDispatcher {
       .reverse();
   }
 
-  private getNames(components: HTMLElement[]): string[] {
-    const names = components
-      .filter(el => el.dataset[this.compAttribute])
-      .flatMap(el => el.dataset[this.compAttribute]!.split(',').map(n => n.trim()));
-    return [...new Set(names)];
+  private groupElementsByComponentName(elements: HTMLElement[]): Map<string, HTMLElement[]> {
+    const elementsByComponentName = new Map<string, HTMLElement[]>();
+    for (let element of elements) {
+      for (let rawName of element.dataset[this.componentAttribute]?.split(',') ?? []) {
+        let componentName = rawName.trim();
+        let sameNameElements = elementsByComponentName.get(componentName);
+        if (sameNameElements) sameNameElements.push(element);
+        else elementsByComponentName.set(componentName, [element]);
+      }
+    }
+    return elementsByComponentName;
   }
 
   private renderDevError(el: HTMLElement, compName: string, error: unknown): void {
@@ -145,12 +154,11 @@ export default class ComponentsDispatcher {
   async importComponents(comps: Record<string, ComponentConstructor>, target?: Element): Promise<void> {
     this.isAsyncMode = false;
     this.lastSyncComps = comps;
-    const components = this.getDomComponents(target);
+    const elementsByComponentName = this.groupElementsByComponentName(this.getDomComponents(target));
 
     await Promise.all(
       Object.entries(comps).flatMap(([compName, ComponentClass]) =>
-        components
-          .filter(el => el.dataset[this.compAttribute]?.split(',').includes(compName))
+        (elementsByComponentName.get(compName) ?? [])
           .map(async el => {
             try {
               const instance = new ComponentClass(el);
@@ -169,15 +177,11 @@ export default class ComponentsDispatcher {
 
   async importAsyncComponents(target?: Element): Promise<void> {
     this.isAsyncMode = true;
-    const components = this.getDomComponents(target);
-    const names = this.getNames(components);
-
-    if (components.length === 0) return;
+    const elementsByComponentName = this.groupElementsByComponentName(this.getDomComponents(target));
 
     await Promise.all(
-      names.flatMap(compName =>
-        components
-          .filter(el => el.dataset[this.compAttribute]?.split(',').includes(compName))
+      [...elementsByComponentName].flatMap(([compName, elements]) =>
+        elements
           .map(async el => {
             try {
               const ComponentClass = await this.resolveComponentClass(compName);

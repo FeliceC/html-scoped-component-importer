@@ -33,6 +33,17 @@ describe('ComponentsDispatcher', () => {
   });
 
   describe('importComponents', () => {
+    it('initializes every component of a comma-separated list with spaces', async () => {
+      const el = document.createElement('div');
+      el.dataset.component = 'MockComponent, SecondMockComponent';
+      document.body.appendChild(el);
+
+      await dispatcher.importComponents({ MockComponent, SecondMockComponent });
+
+      expect(el.dataset.initialized).toBe('true');
+      expect(el.dataset.secondInitialized).toBe('true');
+    });
+
     it('instantiates the matching component class for an element', async () => {
       const el = document.createElement('div');
       el.dataset.component = 'MockComponent';
