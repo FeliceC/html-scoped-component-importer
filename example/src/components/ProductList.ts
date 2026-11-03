@@ -1,9 +1,10 @@
 import { cartState, events, type Product } from '../shared';
 
 const PRODUCTS: Product[] = [
-  { id: 1, name: 'Notebook', price: 12 },
-  { id: 2, name: 'Fountain pen', price: 34 },
-  { id: 3, name: 'Desk lamp', price: 49 }
+  { id: 1, name: '📓 Notebook', price: 12 },
+  { id: 2, name: '🖋️ Fountain pen', price: 34 },
+  { id: 3, name: '💡 Desk lamp', price: 49 },
+  { id: 4, name: '🧁 Cupcake', price: 4 }
 ];
 
 export default class ProductList {

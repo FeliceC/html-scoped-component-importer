@@ -5,100 +5,121 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Scoped Component Importer</title>
   <meta name="description" content="Live demo of html-scoped-component-importer: async and sync component loading, DOM observation, shared events with a visible queue, shared state and a development logger.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧩</text></svg>">
   <style>
     :root {
-      --background: #f6f5f1;
+      color-scheme: light;
+      --background: #fffaf3;
       --surface: #ffffff;
-      --surface-sunken: #f0efea;
-      --text: #1c1b18;
-      --muted: #6a6862;
-      --border: #e3e1da;
-      --accent: #4f46e5;
-      --accent-soft: #eceafd;
-      --success: #16a34a;
-      --warning: #c2780c;
-      --danger: #dc2626;
-      --debug: #8a8780;
-      --radius: 14px;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --background: #121210;
-        --surface: #1c1b19;
-        --surface-sunken: #161614;
-        --text: #eceae4;
-        --muted: #9d9a92;
-        --border: #2e2d29;
-        --accent: #8b85ff;
-        --accent-soft: #26244a;
-        --success: #4ade80;
-        --warning: #f0a83a;
-        --danger: #f87171;
-        --debug: #8a8780;
-      }
+      --text: #24203b;
+      --muted: #6e6987;
+      --border: #efe7f7;
+      --violet: #7c5cff;
+      --violet-soft: #efeaff;
+      --pink: #ff5fa2;
+      --pink-soft: #ffe8f2;
+      --mint: #19c39a;
+      --mint-soft: #ddf8ef;
+      --sun: #ffb020;
+      --sun-soft: #fff1d6;
+      --sky: #2fa6ff;
+      --sky-soft: #e2f3ff;
+      --danger: #ef4444;
+      --shadow: 0 1px 2px rgba(60, 40, 120, .06), 0 8px 24px rgba(60, 40, 120, .08);
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      background: var(--background);
       color: var(--text);
-      font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(900px 500px at 0% 0%, var(--pink-soft), transparent 60%),
+        radial-gradient(800px 500px at 100% 0%, var(--sky-soft), transparent 60%),
+        var(--background);
+      font: 15px/1.55 ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", sans-serif;
+      min-height: 100vh;
     }
-    a { color: var(--accent); }
+    a { color: var(--violet); font-weight: 600; }
     code, pre, time { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
-    header { max-width: 1240px; margin: 0 auto; padding: 48px 16px 24px; }
-    header h1 { font-size: clamp(28px, 4vw, 40px); line-height: 1.15; margin: 0 0 8px; letter-spacing: -0.02em; }
-    header p { color: var(--muted); max-width: 640px; margin: 0 0 16px; }
-    .install { display: inline-block; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 6px 14px; font-size: 13px; }
-    .links { display: inline-flex; gap: 16px; margin-left: 12px; font-size: 14px; }
-    .layout { max-width: 1240px; margin: 0 auto; padding: 0 16px 64px; display: grid; gap: 24px; grid-template-columns: minmax(0, 1fr) 380px; align-items: start; }
-    @media (max-width: 960px) { .layout { grid-template-columns: minmax(0, 1fr); } }
-    .cards { display: grid; gap: 20px; }
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; }
-    .card h2 { font-size: 17px; margin: 0 0 4px; display: flex; align-items: center; gap: 10px; }
-    .card h2 .step { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-size: 13px; }
-    .card > p { color: var(--muted); margin: 0 0 16px; font-size: 14px; }
-    .demo { background: var(--surface-sunken); border-radius: 10px; padding: 16px; margin-bottom: 14px; min-height: 56px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-    pre { margin: 0; background: var(--surface-sunken); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; overflow-x: auto; font-size: 12.5px; line-height: 1.6; }
+    header { max-width: 1240px; margin: 0 auto; padding: 48px 16px 28px; }
+    header h1 { font-size: clamp(30px, 4.5vw, 46px); line-height: 1.1; margin: 0 0 10px; letter-spacing: -0.02em; }
+    header h1 span { background: linear-gradient(90deg, var(--violet), var(--pink), var(--sun)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    header p { color: var(--muted); max-width: 660px; margin: 0 0 18px; font-size: 16px; }
+    .install { display: inline-block; background: var(--surface); box-shadow: var(--shadow); border-radius: 999px; padding: 8px 16px; font-size: 13px; }
+    .links { display: inline-flex; gap: 16px; margin-left: 14px; font-size: 14px; }
+    .layout { max-width: 1240px; margin: 0 auto; padding: 0 16px 64px; display: grid; gap: 24px; grid-template-columns: minmax(0, 1fr) 360px; align-items: start; }
+    @media (max-width: 980px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+    .cards { display: grid; gap: 22px; }
+    .card { background: var(--surface); border-radius: 22px; padding: 24px; box-shadow: var(--shadow); border-top: 5px solid var(--accent, var(--violet)); }
+    .card--violet { --accent: var(--violet); --accent-soft: var(--violet-soft); }
+    .card--pink { --accent: var(--pink); --accent-soft: var(--pink-soft); }
+    .card--mint { --accent: var(--mint); --accent-soft: var(--mint-soft); }
+    .card--sun { --accent: var(--sun); --accent-soft: var(--sun-soft); }
+    .card--sky { --accent: var(--sky); --accent-soft: var(--sky-soft); }
+    .card h2 { font-size: 19px; margin: 0 0 4px; display: flex; align-items: center; gap: 10px; }
+    .card h2 .emoji { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 12px; background: var(--accent-soft); font-size: 20px; }
+    .card > p { color: var(--muted); margin: 0 0 16px; font-size: 14.5px; }
+    .demo { background: var(--accent-soft, var(--violet-soft)); border-radius: 16px; padding: 16px; margin-bottom: 14px; min-height: 60px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    pre { margin: 0; background: #faf8ff; border: 1px dashed var(--border); border-radius: 14px; padding: 12px 14px; overflow-x: auto; font-size: 12.5px; line-height: 1.6; color: #463f6b; }
     button {
-      font: inherit; font-size: 14px; font-weight: 600;
-      background: var(--accent); color: #fff; border: 0; border-radius: 8px; padding: 8px 14px; cursor: pointer;
+      font: inherit; font-size: 14px; font-weight: 700;
+      background: var(--accent, var(--violet)); color: #fff; border: 0; border-radius: 12px; padding: 9px 15px; cursor: pointer;
+      box-shadow: 0 3px 0 rgba(0, 0, 0, .15); transition: transform .12s ease, box-shadow .12s ease;
     }
-    button:hover { filter: brightness(1.08); }
-    button:disabled { opacity: .5; cursor: default; }
-    button.secondary { background: transparent; color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
-    button:focus-visible { outline: 3px solid var(--accent-soft); outline-offset: 2px; }
-    output { font: 600 22px ui-monospace, monospace; min-width: 48px; }
-    .is-highlighted { box-shadow: inset 0 0 0 2px var(--accent); background: var(--accent-soft); border-radius: 10px; padding: 6px 10px; display: inline-flex; gap: 10px; align-items: center; }
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0, 0, 0, .15); }
+    button.secondary { background: var(--surface); color: var(--accent, var(--violet)); box-shadow: inset 0 0 0 2px var(--accent, var(--violet)); }
+    button:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+    output { font: 800 26px ui-rounded, system-ui, sans-serif; min-width: 52px; color: var(--accent); }
+    .is-highlighted { background: var(--surface); box-shadow: 0 0 0 3px var(--accent), 0 6px 18px rgba(0, 0, 0, .08); border-radius: 14px; padding: 8px 12px; display: inline-flex; gap: 12px; align-items: center; animation: wiggle 2.4s ease-in-out infinite; }
+    @keyframes wiggle { 0%, 100% { transform: rotate(0); } 3% { transform: rotate(-2deg); } 6% { transform: rotate(2deg); } 9% { transform: rotate(0); } }
     .live-area { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; }
-    .live-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font: 600 13px ui-monospace, monospace; animation: pop .25s ease-out; }
-    @keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-    .badge { font-weight: 600; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 6px 14px; }
+    .live-card { background: var(--surface); border-radius: 12px; padding: 8px 14px; font-weight: 800; box-shadow: var(--shadow); animation: pop .35s cubic-bezier(.3, 1.6, .5, 1); }
+    @keyframes pop { from { transform: scale(.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .clock { font: 800 22px ui-monospace, monospace; color: var(--sky); }
+
+    .pipeline { display: grid; grid-template-columns: 1fr 1.1fr 1fr; gap: 14px; align-items: stretch; margin-bottom: 14px; }
+    @media (max-width: 720px) { .pipeline { grid-template-columns: 1fr; } }
+    .stage { background: var(--pink-soft); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+    .stage h3 { margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); display: flex; justify-content: space-between; align-items: center; }
+    .stage--queue { background: var(--sun-soft); position: relative; }
+    .stage--listener { background: var(--mint-soft); }
+    [data-component="ProductList"] { display: grid; gap: 8px; }
+    [data-component="ProductList"] button { background: var(--pink); text-align: left; }
+    .badge { align-self: flex-start; font-weight: 800; background: var(--surface); border-radius: 999px; padding: 6px 14px; box-shadow: var(--shadow); }
+    .queue-count { background: var(--sun); color: #fff; border-radius: 999px; padding: 2px 10px; font-size: 13px; }
+    .queue-lane { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; min-height: 120px; }
+    .queue-chip { background: var(--surface); border-radius: 12px; padding: 7px 10px; font-size: 13px; box-shadow: var(--shadow); display: flex; gap: 8px; align-items: center; animation: drop-in .4s cubic-bezier(.3, 1.6, .5, 1); }
+    .queue-chip code { color: var(--sun); font-weight: 800; }
+    .queue-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
+    .queue-chip.is-delivered { animation: fly-out .45s ease-in forwards; }
+    @keyframes drop-in { from { transform: translateY(-14px) scale(.8); opacity: 0; } to { transform: none; opacity: 1; } }
+    @keyframes fly-out { to { transform: translateX(140%) rotate(8deg); opacity: 0; } }
+    .queue-empty { color: var(--muted); font-size: 13px; text-align: center; padding: 26px 8px; }
+    .listener-status { font-weight: 800; font-size: 14px; }
+    .listener-status[data-connected="true"] { color: var(--mint); }
+    .listener-status[data-connected="false"] { color: var(--muted); }
+    #listener-toggle { background: var(--mint); }
     .notifications ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-    .notifications li { background: var(--surface); border-left: 3px solid var(--success); border-radius: 6px; padding: 6px 10px; font-size: 13px; animation: pop .25s ease-out; }
-    #notification-slot { width: 100%; }
-    aside { position: sticky; top: 16px; display: grid; gap: 16px; }
-    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-    .panel h2 { font-size: 14px; margin: 0; padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-    .counter-pill { background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 1px 9px; font-size: 12px; }
-    .panel ul { list-style: none; margin: 0; padding: 8px; display: grid; gap: 4px; }
-    .queue-item { display: flex; gap: 8px; align-items: center; background: var(--surface-sunken); border-radius: 8px; padding: 6px 10px; font-size: 13px; animation: pop .25s ease-out; }
-    .queue-item code { color: var(--warning); font-weight: 600; }
-    .queue-item span { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .queue-empty { color: var(--muted); font-size: 13px; padding: 6px 10px; }
-    #log-list { max-height: 52vh; overflow-y: auto; }
-    .log-entry { display: grid; grid-template-columns: auto auto 1fr; gap: 8px; align-items: baseline; font-size: 12.5px; padding: 4px 8px; border-radius: 6px; border-left: 3px solid var(--debug); }
+    .notifications li { background: var(--surface); border-radius: 12px; padding: 7px 10px; font-size: 13px; box-shadow: var(--shadow); animation: pop .35s cubic-bezier(.3, 1.6, .5, 1); }
+    .hint { font-size: 13.5px; color: var(--muted); background: var(--surface); border-radius: 12px; padding: 10px 14px; margin: 0 0 14px; box-shadow: var(--shadow); }
+
+    aside { position: sticky; top: 16px; }
+    .panel { background: var(--surface); border-radius: 22px; box-shadow: var(--shadow); overflow: hidden; }
+    .panel h2 { font-size: 15px; margin: 0; padding: 14px 18px; background: linear-gradient(90deg, var(--violet-soft), var(--pink-soft)); }
+    #log-list { list-style: none; margin: 0; padding: 10px; display: grid; gap: 4px; max-height: 75vh; overflow-y: auto; }
+    .log-entry { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; font-size: 12.5px; padding: 6px 10px; border-radius: 10px; background: #fbfaff; border-left: 4px solid var(--muted); animation: drop-in .3s ease-out; }
     .log-entry time { color: var(--muted); font-size: 11px; }
-    .log-entry__scope { font: 600 11px ui-monospace, monospace; color: var(--muted); }
-    .log-entry--info { border-left-color: var(--accent); }
-    .log-entry--warn { border-left-color: var(--warning); }
-    .log-entry--error { border-left-color: var(--danger); background: color-mix(in srgb, var(--danger) 8%, transparent); }
+    .log-entry__scope { font: 700 11px ui-monospace, monospace; color: var(--violet); justify-self: end; }
+    .log-entry__message { grid-column: 1 / -1; }
+    .log-entry--info { border-left-color: var(--violet); }
+    .log-entry--warn { border-left-color: var(--sun); background: var(--sun-soft); }
+    .log-entry--error { border-left-color: var(--danger); background: #fff0f0; }
   </style>
 </head>
 <body>
   <header>
-    <h1>html-scoped-component-importer</h1>
-    <p>Bind TypeScript classes to HTML with a <code>data-component</code> attribute. Every card below is live, and the panel on the right shows the queue and the log as you click.</p>
+    <h1>🧩 <span>html-scoped-component-importer</span></h1>
+    <p>Bind TypeScript classes to HTML with a <code>data-component</code> attribute. Everything below is live: click around and watch the queue and the log react.</p>
     <span class="install"><code>npm install html-scoped-component-importer</code></span>
     <span class="links">
       <a href="https://github.com/FeliceC/html-scoped-component-importer">GitHub</a>
@@ -108,8 +129,37 @@
 
   <div class="layout">
     <main class="cards">
-      <section class="card" aria-labelledby="async-title">
-        <h2 id="async-title"><span class="step">1</span>Async mode</h2>
+      <section class="card card--pink" aria-labelledby="events-title">
+        <h2 id="events-title"><span class="emoji" aria-hidden="true">📬</span>Events with a queue + shared state</h2>
+        <p>Products update a <code>SharedState</code> (the cart badge subscribes to it) and emit <code>notify</code>. While no listener is connected, events wait in the <strong>queue</strong>; connect the listener and they are delivered in order.</p>
+        <p class="hint">👉 Add a few products, then press <strong>Connect listener</strong>. Disconnect it and try again.</p>
+        <div class="pipeline">
+          <div class="stage">
+            <h3>Emitter</h3>
+            <div data-component="ProductList"></div>
+            <span class="badge" data-component="CartBadge"></span>
+          </div>
+          <div class="stage stage--queue">
+            <h3>Queue <span class="queue-count" id="queue-count">0</span></h3>
+            <ul class="queue-lane" id="queue-list" aria-live="polite"></ul>
+          </div>
+          <div class="stage stage--listener">
+            <h3>Listener <span class="listener-status" id="listener-status" data-connected="false">offline</span></h3>
+            <button type="button" id="listener-toggle">🔌 Connect listener</button>
+            <div id="notification-slot"></div>
+          </div>
+        </div>
+<pre><code>const events = new EventBus();
+const cart = new SharedState({ items: [] });
+
+cart.set(state =&gt; ({ items: [...state.items, product] }));
+events.emit('notify', 'Notebook added');           // queued while nobody listens…
+events.on('notify', message =&gt; toast(message));     // …delivered to the first listener
+events.onQueueChange(queued =&gt; renderQueue(queued)); // what this card uses</code></pre>
+      </section>
+
+      <section class="card card--violet" aria-labelledby="async-title">
+        <h2 id="async-title"><span class="emoji" aria-hidden="true">⚡</span>Async mode</h2>
         <p>The dispatcher resolves <code>COMPONENTS/Greeting</code> with a dynamic <code>import()</code>: webpack ships it as its own chunk, fetched only when the element exists.</p>
         <div class="demo"><div data-component="Greeting"></div></div>
 <pre><code>&lt;div data-component="Greeting"&gt;&lt;/div&gt;
@@ -118,10 +168,10 @@ const dispatcher = new ComponentDispatcher();
 await dispatcher.importAsyncComponents();</code></pre>
       </section>
 
-      <section class="card" aria-labelledby="sync-title">
-        <h2 id="sync-title"><span class="step">2</span>Sync mode with a custom selector</h2>
+      <section class="card card--sky" aria-labelledby="sync-title">
+        <h2 id="sync-title"><span class="emoji" aria-hidden="true">🕒</span>Sync mode with a custom selector</h2>
         <p>A second dispatcher uses an explicit registry and its own attribute. No dynamic import, so it works with any bundler.</p>
-        <div class="demo">🕒 <span data-sync-component="Clock"></span></div>
+        <div class="demo"><span class="clock" data-sync-component="Clock"></span></div>
 <pre><code>&lt;span data-sync-component="Clock"&gt;&lt;/span&gt;
 
 const dispatcher = new ComponentDispatcher();
@@ -129,58 +179,35 @@ dispatcher.Selector = '[data-sync-component]';
 await dispatcher.importComponents({ Clock });</code></pre>
       </section>
 
-      <section class="card" aria-labelledby="multiple-title">
-        <h2 id="multiple-title"><span class="step">3</span>Several components, options from data attributes</h2>
+      <section class="card card--sun" aria-labelledby="multiple-title">
+        <h2 id="multiple-title"><span class="emoji" aria-hidden="true">🎛️</span>Several components, options from data attributes</h2>
         <p><code>Counter</code> reads its start value and step from <code>data-option-*</code>; <code>Highlight</code> decorates the same element.</p>
         <div class="demo"><div data-component="Counter, Highlight" data-option-start="10" data-option-step="5"></div></div>
 <pre><code>&lt;div data-component="Counter, Highlight"
      data-option-start="10" data-option-step="5"&gt;&lt;/div&gt;</code></pre>
       </section>
 
-      <section class="card" aria-labelledby="observer-title">
-        <h2 id="observer-title"><span class="step">4</span>Observing DOM changes</h2>
+      <section class="card card--mint" aria-labelledby="observer-title">
+        <h2 id="observer-title"><span class="emoji" aria-hidden="true">👀</span>Observing DOM changes</h2>
         <p>With <code>observeDomChanges()</code> new elements are mounted automatically and removed ones get <code>_destroy()</code>. Watch the log.</p>
         <div class="demo">
-          <button type="button" id="add-card">Add card</button>
-          <button type="button" class="secondary" id="remove-card">Remove last</button>
+          <button type="button" id="add-card">➕ Add card</button>
+          <button type="button" class="secondary" id="remove-card">➖ Remove last</button>
           <div class="live-area" id="live-area" aria-live="polite"></div>
         </div>
 <pre><code>const stopObserving = dispatcher.observeDomChanges();</code></pre>
       </section>
 
-      <section class="card" aria-labelledby="events-title">
-        <h2 id="events-title"><span class="step">5</span>Shared state and events with a queue</h2>
-        <p>Products update a <code>SharedState</code> that the badge subscribes to, and emit <code>notify</code>. Nobody listens to <code>notify</code> yet, so the events wait in the <strong>queue</strong> on the right until you mount the notification center.</p>
-        <div class="demo">
-          <div data-component="ProductList"></div>
-          <span class="badge" data-component="CartBadge"></span>
-        </div>
-        <div class="demo">
-          <button type="button" id="mount-notifications">Mount notification center</button>
-          <div id="notification-slot"></div>
-        </div>
-<pre><code>const events = new EventBus();
-const cart = new SharedState({ items: [] });
-
-cart.set(state =&gt; ({ items: [...state.items, product] }));
-events.emit('notify', 'Notebook added');   // queued until…
-events.on('notify', message =&gt; render(message)); // …the first listener arrives</code></pre>
-      </section>
-
-      <section class="card" aria-labelledby="error-title">
-        <h2 id="error-title"><span class="step">6</span>Error overlay</h2>
+      <section class="card card--pink" aria-labelledby="error-title">
+        <h2 id="error-title"><span class="emoji" aria-hidden="true">💥</span>Error overlay</h2>
         <p>A component that throws does not break the others. In development builds it is replaced by an overlay with the stack trace.</p>
         <div class="demo"><div data-component="FailingWidget"></div></div>
       </section>
     </main>
 
     <aside aria-label="Live activity">
-      <section class="panel" aria-labelledby="queue-title">
-        <h2 id="queue-title">Event queue <span class="counter-pill" id="queue-count">0</span></h2>
-        <ul id="queue-list" aria-live="polite"></ul>
-      </section>
       <section class="panel" aria-labelledby="log-title">
-        <h2 id="log-title">Log</h2>
+        <h2 id="log-title">📜 Live log</h2>
         <ul id="log-list"></ul>
       </section>
     </aside>

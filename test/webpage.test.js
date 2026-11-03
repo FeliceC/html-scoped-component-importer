@@ -27,7 +27,7 @@ describe('demo page', () => {
     expect(await page.$eval('#queue-count', element => element.textContent)).toBe('2');
     expect(await page.$eval('[data-component="CartBadge"]', element => element.textContent)).toContain('2 item(s)');
 
-    await page.click('#mount-notifications');
+    await page.click('#listener-toggle');
     await page.waitForFunction(() => document.querySelectorAll('.notifications li').length === 2);
     expect(await page.$eval('#queue-count', element => element.textContent)).toBe('0');
   });
