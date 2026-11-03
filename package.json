@@ -3,6 +3,7 @@
   "version": "2.0.0",
   "main": "./src/index.ts",
   "license": "MIT",
+  "packageManager": "yarn@1.22.22",
   "description": "Async html scoped components dispatcher",
   "repository": "https://github.com/FeliceC/html-scoped-component-importer",
   "author": "Felice Caricati <felice.caricati@gmail.com>",
