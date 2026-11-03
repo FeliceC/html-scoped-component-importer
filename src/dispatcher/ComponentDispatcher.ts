@@ -40,9 +40,15 @@ export default class ComponentsDispatcher {
     return root.matches(this.componentSelector) ? [root as HTMLElement, ...descendants] : descendants;
   }
 
-  private getDomComponents(parent?: Element): HTMLElement[] {
-    return this.findComponentElements(parent || document.body)
-      .filter(el => !el.dataset.uuid)
+  private getDomComponents(target?: Element | Element[]): HTMLElement[] {
+    const roots = Array.isArray(target) ? target : [target || document.body];
+    const newElements = new Set<HTMLElement>();
+    for (let root of roots) {
+      for (let element of this.findComponentElements(root)) {
+        if (!element.dataset.uuid) newElements.add(element);
+      }
+    }
+    return [...newElements]
       .map(el => {
         el.dataset.uuid = crypto.randomUUID();
         return el;
@@ -119,16 +125,12 @@ export default class ComponentsDispatcher {
 
   observeDomChanges(): () => void {
     const observer = new MutationObserver(mutations => {
+      const addedElements: Element[] = [];
       for (const mutation of mutations) {
         if (mutation.type !== 'childList') continue;
 
         for (const node of mutation.addedNodes) {
-          if (!(node instanceof Element)) continue;
-          if (this.isAsyncMode) {
-            this.importAsyncComponents(node);
-          } else if (this.lastSyncComps) {
-            this.importComponents(this.lastSyncComps, node);
-          }
+          if (node instanceof Element && node.isConnected) addedElements.push(node);
         }
 
         for (const node of mutation.removedNodes) {
@@ -144,6 +146,13 @@ export default class ComponentsDispatcher {
             }
           }
         }
+      }
+
+      if (addedElements.length === 0) return;
+      if (this.isAsyncMode) {
+        this.importAsyncComponents(addedElements);
+      } else if (this.lastSyncComps) {
+        this.importComponents(this.lastSyncComps, addedElements);
       }
     });
 
@@ -167,7 +176,7 @@ export default class ComponentsDispatcher {
     }
   }
 
-  async importComponents(comps: Record<string, ComponentConstructor>, target?: Element): Promise<void> {
+  async importComponents(comps: Record<string, ComponentConstructor>, target?: Element | Element[]): Promise<void> {
     this.isAsyncMode = false;
     this.lastSyncComps = comps;
     const elementsByComponentName = this.groupElementsByComponentName(this.getDomComponents(target));
@@ -179,7 +188,7 @@ export default class ComponentsDispatcher {
     }
   }
 
-  async importAsyncComponents(target?: Element): Promise<void> {
+  async importAsyncComponents(target?: Element | Element[]): Promise<void> {
     this.isAsyncMode = true;
     const elementsByComponentName = this.groupElementsByComponentName(this.getDomComponents(target));
 

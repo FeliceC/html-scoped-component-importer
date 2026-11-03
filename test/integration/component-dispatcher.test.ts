@@ -229,6 +229,27 @@ describe('ComponentsDispatcher', () => {
       await vi.waitFor(() => expect(el.dataset.initialized).toBe('true'), { timeout: 2000 });
     });
 
+    it('initializes once a component reported by several mutation records in the same batch', async () => {
+      const constructorSpy = vi.fn();
+      class CountingComponent {
+        constructor(element: HTMLElement) {
+          constructorSpy(element);
+        }
+      }
+      await dispatcher.importComponents({ CountingComponent });
+      observerCleanup = dispatcher.observeDomChanges();
+
+      const container = document.createElement('div');
+      document.body.appendChild(container);
+      const el = document.createElement('div');
+      el.dataset.component = 'CountingComponent';
+      container.appendChild(el);
+
+      await vi.waitFor(() => expect(constructorSpy).toHaveBeenCalledTimes(1), { timeout: 2000 });
+      await new Promise(resolve => setTimeout(resolve, 20));
+      expect(constructorSpy).toHaveBeenCalledTimes(1);
+    });
+
     it('calls _destroy when the component element itself is removed', async () => {
       const el = document.createElement('div');
       el.dataset.component = 'DestroyableComponent';
