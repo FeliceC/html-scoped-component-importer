@@ -7,6 +7,8 @@ A lightweight TypeScript library for declaratively binding JavaScript classes to
 
 ---
 
+**[▶ Live demo](https://felicec.github.io/html-scoped-component-importer/)**: every integration mode on one page, with the event queue and the log visible in real time.
+
 ## Table of Contents
 
 - [Installation](#installation)
@@ -19,6 +21,9 @@ A lightweight TypeScript library for declaratively binding JavaScript classes to
 - [BaseComponent Helper](#basecomponent-helper)
 - [Component Options via Data Attributes](#component-options-via-data-attributes)
 - [Dev Error Overlay](#dev-error-overlay)
+- [Shared Events with a Queue](#shared-events-with-a-queue)
+- [Shared State](#shared-state)
+- [Development Logger](#development-logger)
 - [API Reference](#api-reference)
 - [Development](#development)
 
@@ -118,7 +123,7 @@ await dispatcher.importComponents({
 });
 ```
 
-Sync mode works with any bundler and needs no alias. The library reads `process.env.NODE_ENV` to decide between the dev error overlay and `console.error`, so your bundler must replace it at build time: webpack, Vite (app mode) and esbuild (with `bundle: true`) do this by default.
+Sync mode works with any bundler and needs no alias. Development features (error overlay, logger) turn on only when the bundler replaces `process.env.NODE_ENV` with `"development"`; webpack, Vite and esbuild do this by default. Without the replacement the library still works and simply stays in production behaviour.
 
 ---
 
@@ -272,17 +277,107 @@ When `NODE_ENV=development` and a component throws during initialization, the di
 
 - Red dashed outline with the component name and error message
 - Expandable stack trace via a `<details>` element
-- `console.error` is always called regardless of environment
+- The error is reported through the dispatcher's [logger](#development-logger)
 
-In production (`NODE_ENV=production`) only `console.error` is called — no DOM mutation.
+In production only `console.error` is called — no DOM mutation.
+
+---
+
+## Shared Events with a Queue
+
+Every component receives the dispatcher as its second constructor argument, so components can talk through `dispatcher.events` without importing each other:
+
+```ts
+export default class AddToCartButton {
+  constructor(element: HTMLElement, dispatcher: ComponentDispatcher) {
+    element.addEventListener('click', () => dispatcher.events.emit('cart:add', { id: 3 }));
+  }
+}
+
+export default class CartBadge {
+  constructor(element: HTMLElement, dispatcher: ComponentDispatcher) {
+    const unsubscribe = dispatcher.events.on<{ id: number }>('cart:add', item => { /* … */ });
+  }
+}
+```
+
+An event emitted while nobody listens is **queued** (up to 50 per event name, oldest dropped first) and replayed in order to the first subscriber, which is what a lazily loaded async component needs. The queue is observable:
+
+```ts
+events.queuedEvents;                                 // snapshot: { eventName, payload, queuedAt }[]
+const stop = events.onQueueChange(queued => render(queued));
+```
+
+`EventBus` is a standalone class: use it outside components, or share one bus between dispatchers:
+
+```ts
+import { ComponentDispatcher, EventBus } from 'html-scoped-component-importer';
+
+const events = new EventBus({ maximumQueuedPerEvent: 20 });
+const asyncDispatcher = new ComponentDispatcher({ events });
+const syncDispatcher = new ComponentDispatcher({ events });
+```
+
+A listener that throws is logged and does not stop the others.
+
+---
+
+## Shared State
+
+`SharedState` holds an immutable object, shallow-merges updates and notifies subscribers with the next and previous state:
+
+```ts
+import { SharedState } from 'html-scoped-component-importer';
+
+const cart = new SharedState({ items: [] as string[] });
+const unsubscribe = cart.subscribe((next, previous) => render(next.items));
+
+cart.set({ items: ['book'] });
+cart.set(current => ({ items: [...current.items, 'pen'] }));
+cart.get(); // → { items: ['book', 'pen'] } (frozen)
+```
+
+`dispatcher.createState('cart', initialState)` creates one whose changes are logged under the `state:cart` scope.
+
+---
+
+## Development Logger
+
+A colourful console logger with one emoji per level, scoped labels and a listener API for building your own log panel. The dispatcher, the event bus and shared states report their activity through it: components set up, errors, `_destroy()` calls, queued and delivered events, state changes.
+
+```ts
+import { Logger, LogLevel } from 'html-scoped-component-importer';
+
+const logger = new Logger({ scope: 'shop' });   // enabled only in development builds by default
+logger.info('Cart ready');                     // 🧩 shop ✨ Cart ready
+logger.withScope('checkout').warn('Slow API'); // shares listeners with the parent
+logger.onEntry(entry => panel.append(entry.message)); // { level, scope, message, details, timestamp }
+
+new ComponentDispatcher({ logger });
+```
+
+Pass `enabled: true` to keep it on in production, `enabled: false` to silence it.
 
 ---
 
 ## API Reference
 
-### `new ComponentDispatcher()`
+### `new ComponentDispatcher(options?)`
 
 Creates a new dispatcher instance. Each instance maintains its own component registry and `APP_COMPONENTS` map — you can run multiple dispatchers on the same page with different selectors.
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `events` | `EventBus` _(optional)_ | Bus exposed as `dispatcher.events`; a new one by default |
+| `logger` | `Logger` _(optional)_ | Logger exposed as `dispatcher.logger`; enabled in development builds by default |
+
+Component classes are constructed as `new Component(element, dispatcher)`.
+
+---
+
+### `events`, `logger`, `createState(name, initialState)`
+
+See [Shared Events](#shared-events-with-a-queue), [Shared State](#shared-state) and [Development Logger](#development-logger).
 
 ---
 
@@ -297,7 +392,7 @@ Queries the DOM (or `target` subtree) for matching elements and instantiates the
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `comps` | `Record<string, ComponentConstructor>` | Map of component name → class |
-| `target` | `Element` _(optional)_ | Subtree root; defaults to `document.body` |
+| `target` | `Element \| Element[]` _(optional)_ | Subtree root(s); defaults to `document.body` |
 
 ---
 
@@ -311,7 +406,7 @@ Same as `importComponents` but resolves classes via dynamic `import('COMPONENTS/
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `target` | `Element` _(optional)_ | Subtree root; defaults to `document.body` |
+| `target` | `Element \| Element[]` _(optional)_ | Subtree root(s); defaults to `document.body` |
 
 ---
 
@@ -365,8 +460,17 @@ A `Map` keyed by `data-uuid` (auto-assigned UUIDs) containing every initialized 
 # Install dependencies
 yarn install
 
-# Run the example app
+# Run the demo page with live reload (http://localhost:3004)
 yarn start
+
+# Build the demo page published to GitHub Pages
+yarn build:demo
+
+# Headless performance benchmark (Chrome via Puppeteer)
+yarn bench
+
+# Check that the library bundles with Vite and esbuild
+yarn test:bundlers
 
 # Unit + integration tests (Vitest / happy-dom)
 yarn test:unit
