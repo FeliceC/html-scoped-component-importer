@@ -5,11 +5,6 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  resolve: {
-    alias: {
-      COMPONENTS: path.resolve(__dirname, 'fixture/components'),
-    },
-  },
   build: {
     outDir: path.resolve(__dirname, 'dist/vite'),
     emptyOutDir: true,

@@ -5,7 +5,6 @@ import { build as buildWithVite } from 'vite';
 import { build as buildWithEsbuild } from 'esbuild';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const componentsDirectory = path.resolve(__dirname, 'fixture/components');
 
 const bundlerBuilds = {
   vite: () => buildWithVite({
@@ -17,7 +16,6 @@ const bundlerBuilds = {
     bundle: true,
     platform: 'browser',
     format: 'esm',
-    alias: { COMPONENTS: componentsDirectory },
     outfile: path.resolve(__dirname, 'dist/esbuild/bundle.js'),
   }),
 };
