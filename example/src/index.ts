@@ -1,6 +1,9 @@
 import { ComponentDispatcher, type LogEntry, type QueuedEvent } from '../../src/index';
 import Clock from './registry/Clock';
 import { events, logger } from './shared';
+import highlighter from 'highlight.js/lib/core';
+import typescript from 'highlight.js/lib/languages/typescript';
+import xml from 'highlight.js/lib/languages/xml';
 
 const MAXIMUM_LOG_ENTRIES = 60;
 
@@ -92,6 +95,10 @@ logger.onEntry(renderLogEntry);
 events.onQueueChange(renderQueue);
 renderQueue(events.queuedEvents);
 bindDemoControls();
+
+highlighter.registerLanguage('typescript', typescript);
+highlighter.registerLanguage('html', xml);
+highlighter.highlightAll();
 
 const asyncDispatcher = new ComponentDispatcher({ events, logger: logger.withScope('⚡ dispatcher') });
 asyncDispatcher.importAsyncComponents().then(() => asyncDispatcher.observeDomChanges());
