@@ -329,6 +329,17 @@ describe('ComponentsDispatcher', () => {
   });
 
   describe('Selector setter', () => {
+    it('reads a multi-word custom attribute through its camelCase dataset key', async () => {
+      dispatcher.Selector = '[data-sync-component]';
+      const el = document.createElement('div');
+      el.setAttribute('data-sync-component', 'MockComponent');
+      document.body.appendChild(el);
+
+      await dispatcher.importComponents({ MockComponent });
+
+      expect(el.dataset.initialized).toBe('true');
+    });
+
     it('uses a custom selector for querySelectorAll', async () => {
       dispatcher.Selector = '[data-widget]';
 

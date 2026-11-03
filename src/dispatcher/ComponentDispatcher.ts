@@ -70,7 +70,7 @@ export default class ComponentsDispatcher {
   private groupElementsByComponentName(elements: HTMLElement[]): Map<string, HTMLElement[]> {
     const elementsByComponentName = new Map<string, HTMLElement[]>();
     for (let element of elements) {
-      for (let rawName of element.dataset[this.componentAttribute]?.split(',') ?? []) {
+      for (let rawName of element.getAttribute(`data-${this.componentAttribute}`)?.split(',') ?? []) {
         let componentName = rawName.trim();
         let sameNameElements = elementsByComponentName.get(componentName);
         if (sameNameElements) sameNameElements.push(element);
@@ -154,7 +154,7 @@ export default class ComponentsDispatcher {
               if (typeof instance._destroy === 'function') {
                 (instance._destroy as () => void)();
               }
-              this.logger.debug(`destroyed "${comp.dataset[this.componentAttribute]}"`);
+              this.logger.debug(`destroyed "${comp.getAttribute(`data-${this.componentAttribute}`)}"`);
             }
           }
         }
