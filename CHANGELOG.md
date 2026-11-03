@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.2.0
+
+### Added
+
+- `npx html-scoped-component-importer init`: detects the bundler, asks for the components folder and writes a `componentLoader` file for async mode. It never overwrites files or edits the bundler config. See [Quick setup with `init`](./README.md#quick-setup-with-init).
+
 ## 3.1.0
 
 ### Added

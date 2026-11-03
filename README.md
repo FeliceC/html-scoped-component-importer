@@ -95,6 +95,24 @@ await dispatcher.importAsyncComponents();
 
 `data-component="HelloWorldComponent"` calls `loadComponent('HelloWorldComponent')`, which must resolve to a module whose **default export** is the component class. The class is cached: the loader runs once per component name, and a failed load is retried on the next scan.
 
+### Quick setup with `init`
+
+```sh
+npx html-scoped-component-importer init
+```
+
+It detects your bundler from `package.json` (asking when it finds none or several), asks for your components folder (default `src/components`) and writes `componentLoader.ts` (or `.js` without a `tsconfig.json`) next to that folder, with the loader for your bundler. It never overwrites an existing file and prints the lines to add to your entry point:
+
+```ts
+import { ComponentDispatcher } from 'html-scoped-component-importer';
+import loadComponent from './componentLoader';
+
+const dispatcher = new ComponentDispatcher({ loadComponent });
+await dispatcher.importAsyncComponents();
+```
+
+It never edits your bundler config: when one is needed (webpack), it prints the line to add. The generated code is the same as in the manual setup below.
+
 ### Bundler setup
 
 Each setup below is built and tested in CI ([`test/bundlers`](./test/bundlers)).
