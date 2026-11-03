@@ -487,6 +487,12 @@ yarn test
 yarn build
 ```
 
+### Releasing
+
+1. On `develop`, bump the version: `npm version patch|minor|major --no-git-tag-version`, then commit.
+2. Merge `develop` into `main` (only repository admins can update `main`).
+3. Run **Actions → Publish to npm** on `main`: it type-checks, runs the unit tests and publishes with provenance.
+
 ## License
 
 [MIT](./LICENSE)
