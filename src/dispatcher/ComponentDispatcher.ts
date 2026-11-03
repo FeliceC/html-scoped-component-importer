@@ -151,28 +151,32 @@ export default class ComponentsDispatcher {
     return () => observer.disconnect();
   }
 
+  private reportInitializationError(element: HTMLElement, componentName: string, error: unknown): void {
+    if (process.env.NODE_ENV === 'development') {
+      this.renderDevError(element, componentName, error);
+    } else {
+      console.error(`[${componentName}] initialization error on el =>`, element, 'with error =>', error);
+    }
+  }
+
+  private instantiateComponent(element: HTMLElement, componentName: string, ComponentClass: ComponentConstructor): void {
+    try {
+      this.appComponents.set(element.dataset.uuid!, new ComponentClass(element));
+    } catch (error) {
+      this.reportInitializationError(element, componentName, error);
+    }
+  }
+
   async importComponents(comps: Record<string, ComponentConstructor>, target?: Element): Promise<void> {
     this.isAsyncMode = false;
     this.lastSyncComps = comps;
     const elementsByComponentName = this.groupElementsByComponentName(this.getDomComponents(target));
 
-    await Promise.all(
-      Object.entries(comps).flatMap(([compName, ComponentClass]) =>
-        (elementsByComponentName.get(compName) ?? [])
-          .map(async el => {
-            try {
-              const instance = new ComponentClass(el);
-              this.appComponents.set(el.dataset.uuid!, instance);
-            } catch (e) {
-              if (process.env.NODE_ENV === 'development') {
-                this.renderDevError(el, compName, e);
-              } else {
-                console.error(`[${compName}] initialization error on el =>`, el, 'with error =>', e);
-              }
-            }
-          })
-      )
-    );
+    for (let [componentName, ComponentClass] of Object.entries(comps)) {
+      for (let element of elementsByComponentName.get(componentName) ?? []) {
+        this.instantiateComponent(element, componentName, ComponentClass);
+      }
+    }
   }
 
   async importAsyncComponents(target?: Element): Promise<void> {
@@ -180,22 +184,16 @@ export default class ComponentsDispatcher {
     const elementsByComponentName = this.groupElementsByComponentName(this.getDomComponents(target));
 
     await Promise.all(
-      [...elementsByComponentName].flatMap(([compName, elements]) =>
-        elements
-          .map(async el => {
-            try {
-              const ComponentClass = await this.resolveComponentClass(compName);
-              const instance = new ComponentClass(el);
-              this.appComponents.set(el.dataset.uuid!, instance);
-            } catch (e) {
-              if (process.env.NODE_ENV === 'development') {
-                this.renderDevError(el, compName, e);
-              } else {
-                console.error(`[${compName}] initialization error on el =>`, el, 'with error =>', e);
-              }
-            }
-          })
-      )
+      [...elementsByComponentName].map(async ([componentName, elements]) => {
+        let ComponentClass: ComponentConstructor;
+        try {
+          ComponentClass = await this.resolveComponentClass(componentName);
+        } catch (error) {
+          elements.forEach(element => this.reportInitializationError(element, componentName, error));
+          return;
+        }
+        elements.forEach(element => this.instantiateComponent(element, componentName, ComponentClass));
+      })
     );
   }
 
