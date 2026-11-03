@@ -65,7 +65,7 @@ describe('ComponentsDispatcher', () => {
 
       const uuid = el.dataset.uuid!;
       expect(uuid).toBeDefined();
-      expect(dispatcher.APP_COMPONENTS.get(uuid)).toBeInstanceOf(MockComponent);
+      expect(dispatcher.APP_COMPONENTS.get(uuid)).toEqual([expect.any(MockComponent)]);
     });
 
     it('skips elements that already have a data-uuid', async () => {
@@ -270,6 +270,28 @@ describe('ComponentsDispatcher', () => {
       expect(dispatcher.APP_COMPONENTS.has(el.dataset.uuid!)).toBe(true);
     });
 
+    it('calls _destroy on every component of an element hosting several', async () => {
+      const destroyedComponentNames: string[] = [];
+      class FirstDestroyable {
+        _destroy() { destroyedComponentNames.push('FirstDestroyable'); }
+      }
+      class SecondDestroyable {
+        _destroy() { destroyedComponentNames.push('SecondDestroyable'); }
+      }
+      const el = document.createElement('div');
+      el.dataset.component = 'FirstDestroyable, SecondDestroyable';
+      document.body.appendChild(el);
+
+      await dispatcher.importComponents({ FirstDestroyable, SecondDestroyable });
+      observerCleanup = dispatcher.observeDomChanges();
+      expect(dispatcher.APP_COMPONENTS.get(el.dataset.uuid!)).toHaveLength(2);
+
+      el.remove();
+
+      await vi.waitFor(() => expect(destroyedComponentNames).toEqual(['FirstDestroyable', 'SecondDestroyable']), { timeout: 2000 });
+      expect(dispatcher.APP_COMPONENTS.has(el.dataset.uuid!)).toBe(false);
+    });
+
     it('calls _destroy when the component element itself is removed', async () => {
       const el = document.createElement('div');
       el.dataset.component = 'DestroyableComponent';
@@ -399,7 +421,7 @@ describe('ComponentsDispatcher', () => {
       await dispatcher.importComponents({ MockComponent });
 
       const uuid = el.dataset.uuid!;
-      expect(dispatcher.APP_COMPONENTS.get(uuid)).toBeInstanceOf(MockComponent);
+      expect(dispatcher.APP_COMPONENTS.get(uuid)).toEqual([expect.any(MockComponent)]);
     });
 
     it('accumulates instances across multiple importComponents calls', async () => {

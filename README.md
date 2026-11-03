@@ -447,10 +447,12 @@ Returns the data attribute name extracted from the current selector.
 ### `APP_COMPONENTS` _(getter)_
 
 ```ts
-dispatcher.APP_COMPONENTS // → Map<string, object>
+dispatcher.APP_COMPONENTS // → Map<string, object[]>
 ```
 
-A `Map` keyed by `data-uuid` (auto-assigned UUIDs) containing every initialized component instance. Entries are removed automatically when `observeDomChanges` detects element removal.
+A `Map` keyed by `data-uuid` (auto-assigned UUIDs) with the instances living on each element: one per component listed in its `data-component`. Entries are removed, and every instance gets `_destroy()`, when `observeDomChanges` detects element removal.
+
+> **Changed in 3.0.0:** values are arrays. Before, an element hosting several components kept only the last instance, so the others never received `_destroy()`.
 
 ---
 

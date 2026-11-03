@@ -14,7 +14,7 @@ export default class ComponentsDispatcher {
   private pendingImports: Map<string, Promise<ComponentConstructor>>;
   private isAsyncMode: boolean;
   private lastSyncComps: Record<string, ComponentConstructor> | null;
-  private readonly appComponents: Map<string, object>;
+  private readonly appComponents: Map<string, object[]>;
 
   get APP_COMPONENTS() {
     return this.appComponents;
@@ -148,14 +148,13 @@ export default class ComponentsDispatcher {
           if (!(node instanceof Element) || node.isConnected) continue;
           for (const comp of this.findComponentElements(node)) {
             const componentId = comp.dataset.uuid;
-            if (componentId && this.appComponents.has(componentId)) {
-              const instance = this.appComponents.get(componentId) as Record<string, unknown>;
-              this.appComponents.delete(componentId);
-              if (typeof instance._destroy === 'function') {
-                (instance._destroy as () => void)();
-              }
-              this.logger.debug(`destroyed "${comp.getAttribute(`data-${this.componentAttribute}`)}"`);
+            const instances = componentId ? this.appComponents.get(componentId) : undefined;
+            if (!instances) continue;
+            this.appComponents.delete(componentId!);
+            for (let instance of instances as Record<string, unknown>[]) {
+              if (typeof instance._destroy === 'function') (instance._destroy as () => void)();
             }
+            this.logger.debug(`destroyed "${comp.getAttribute(`data-${this.componentAttribute}`)}"`);
           }
         }
       }
@@ -182,7 +181,10 @@ export default class ComponentsDispatcher {
 
   private instantiateComponent(element: HTMLElement, componentName: string, ComponentClass: ComponentConstructor): void {
     try {
-      this.appComponents.set(element.dataset.uuid!, new ComponentClass(element, this));
+      const instance = new ComponentClass(element, this);
+      const elementInstances = this.appComponents.get(element.dataset.uuid!);
+      if (elementInstances) elementInstances.push(instance);
+      else this.appComponents.set(element.dataset.uuid!, [instance]);
     } catch (error) {
       this.reportInitializationError(element, componentName, error);
     }
