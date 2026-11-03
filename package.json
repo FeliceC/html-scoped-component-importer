@@ -17,7 +17,8 @@
     "serve": "node server.js",
     "prepare": "husky",
     "prepublishOnly": "pinst --disable",
-    "postpublish": "pinst --enable"
+    "postpublish": "pinst --enable",
+    "test:bundlers": "node test/bundlers/run.mjs && jest --testPathIgnorePatterns=/node_modules/ --testPathPattern=test/bundlers"
   },
   "engines": {
     "node": ">=24.0.0"
@@ -47,7 +48,8 @@
     "webpack": "^5.107.2",
     "webpack-cli": "^7.0.3",
     "webpack-dev-middleware": "^8.0.3",
-    "webpack-dev-server": "^5.2.4"
+    "webpack-dev-server": "^5.2.4",
+    "esbuild": "^0.25.0"
   },
   "browserslist": [
     "Chrome >= 92",
