@@ -71,9 +71,7 @@ Each element gets initialized exactly once — subsequent calls skip elements th
 
 ## Async Mode (Dynamic Import)
 
-Async mode uses dynamic `import()` to load component files on demand. This requires a `COMPONENTS` alias in your bundler config pointing to the folder where your component files live.
-
-### webpack
+Async mode uses dynamic `import()` to load component files on demand. It requires **webpack** and a `COMPONENTS` alias pointing to the folder where your component files live:
 
 ```js
 // webpack.config.js
@@ -99,6 +97,8 @@ await dispatcher.importAsyncComponents();
 
 The dispatcher resolves `data-component="HelloWorldComponent"` to `COMPONENTS/HelloWorldComponent` and caches the class after the first import — subsequent calls for the same component name skip the network round-trip.
 
+> **Bundler compatibility note:** the import path is built at runtime (`` import(`COMPONENTS/${name}`) ``). webpack splits every file in the `COMPONENTS` folder into its own chunk. **Vite, Rollup and esbuild** leave a fully dynamic path unresolved, so the alias has no effect and the components never load; Parcel is untested. With those bundlers, use [`importComponents`](#importcomponentscomps-target) (sync mode).
+
 ---
 
 ## Sync Mode (Explicit Registry)
@@ -117,6 +117,8 @@ await dispatcher.importComponents({
   CounterComponent,
 });
 ```
+
+Sync mode works with any bundler and needs no alias. The library reads `process.env.NODE_ENV` to decide between the dev error overlay and `console.error`, so your bundler must replace it at build time: webpack, Vite (app mode) and esbuild (with `bundle: true`) do this by default.
 
 ---
 
