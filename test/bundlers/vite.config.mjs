@@ -10,7 +10,7 @@ export default defineConfig({
     emptyOutDir: true,
     modulePreload: false,
     rollupOptions: {
-      input: path.resolve(__dirname, 'fixture/main.ts'),
+      input: path.resolve(__dirname, 'fixture/entries/vite.ts'),
       output: {
         entryFileNames: 'bundle.js'
       }

@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 
-const BUNDLER_NAMES = ['vite', 'esbuild'];
+const BUNDLER_NAMES = ['webpack', 'vite', 'esbuild', 'rollup'];
 
 const servers = {};
 
@@ -48,6 +48,13 @@ for (let bundlerName of BUNDLER_NAMES) {
 
       expect(result.initialized).toBe('true');
       expect(result.hasUuid).toBe(true);
+    });
+
+    test('initializes AsyncBundlerComponent through the bundler-specific loader', async () => {
+      await page.waitForFunction(
+        () => document.querySelector('[data-async-component="AsyncBundlerComponent"]')?.dataset.initialized === 'true',
+        { timeout: 5000 }
+      );
     });
 
     test('handles a throwing component without uncaught page errors', async () => {
