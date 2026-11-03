@@ -21,8 +21,6 @@
     "jest": "jest",
     "serve": "node server.js",
     "prepare": "husky",
-    "prepublishOnly": "pinst --disable",
-    "postpublish": "pinst --enable",
     "bench": "node benchmark/run.mjs",
     "test:bundlers": "node test/bundlers/run.mjs && jest --testPathIgnorePatterns=/node_modules/ --testPathPatterns=test/bundlers"
   },
@@ -41,7 +39,6 @@
     "husky": "^9.1.7",
     "jest": "^30.5.2",
     "jest-puppeteer": "^11.0.0",
-    "pinst": "^3.0.0",
     "puppeteer": "^25.1.0",
     "ts-loader": "^9.5.7",
     "typescript": "^6.0.3",

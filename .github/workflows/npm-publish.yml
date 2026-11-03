@@ -5,8 +5,10 @@ on:
 
 jobs:
   publish:
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       id-token: write
     steps:
       - uses: actions/checkout@v4
@@ -16,5 +18,6 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           cache: 'yarn'
       - run: yarn install --frozen-lockfile
-      - run: yarn build
+      - run: npx tsc --noEmit
+      - run: yarn test:unit
       - run: npm publish --provenance
