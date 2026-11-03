@@ -70,9 +70,12 @@ export default class Logger {
     const entry: LogEntry = { level, scope: this.scope, message, details, timestamp: Date.now() };
     const { emoji, color } = LEVEL_STYLES[level];
     const consoleArguments = [
-      `%c🧩 ${this.scope}%c ${emoji} ${message}`,
+      '%c🧩 %s%c %s %s',
       `background:${color};color:#fff;border-radius:4px;padding:1px 6px;font-weight:600`,
-      `color:${color}`
+      this.scope,
+      `color:${color}`,
+      emoji,
+      message
     ];
     // eslint-disable-next-line no-console -- the logger is the single sanctioned console writer
     console[level](...consoleArguments, ...(details === undefined ? [] : [details]));

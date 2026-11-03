@@ -11,9 +11,16 @@ describe('Logger', () => {
     new Logger({ scope: 'cart', enabled: true }).info('ready', { items: 2 });
 
     expect(consoleInfo).toHaveBeenCalledTimes(1);
-    expect(consoleInfo.mock.calls[0][0]).toContain('🧩 cart');
-    expect(consoleInfo.mock.calls[0][0]).toContain('ready');
+    expect(consoleInfo.mock.calls[0]).toContain('cart');
+    expect(consoleInfo.mock.calls[0]).toContain('ready');
     expect(consoleInfo.mock.calls[0]).toContainEqual({ items: 2 });
+  });
+
+  it('keeps caller text out of the console format string', () => {
+    const consoleInfo = vi.spyOn(console, 'info').mockImplementation(() => {});
+    new Logger({ scope: '%c%o', enabled: true }).info('%s%c%o');
+
+    expect(consoleInfo.mock.calls[0][0]).toBe('%c🧩 %s%c %s %s');
   });
 
   it('notifies entry listeners with level, scope and details', () => {
