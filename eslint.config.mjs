@@ -31,7 +31,7 @@ export default tseslint.config(
     ...tseslint.configs.disableTypeChecked,
   },
   {
-    files: ['test/bundlers/*.mjs', 'benchmark/*.mjs'],
+    files: ['test/bundlers/*.mjs', 'benchmark/*.mjs', 'bin/*.mjs'],
     languageOptions: {
       globals: globals.node,
     },

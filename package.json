@@ -13,8 +13,12 @@
   "sideEffects": false,
   "files": [
     "lib",
+    "bin",
     "CHANGELOG.md"
   ],
+  "bin": {
+    "html-scoped-component-importer": "bin/init.mjs"
+  },
   "license": "MIT",
   "packageManager": "yarn@1.22.22",
   "description": "Async html scoped components dispatcher",
