@@ -38,12 +38,12 @@
         <h2>Package and requirements</h2>
         <ul>
           <li>The package ships <strong>ES2020 modules with type declarations</strong> (<code>lib/*.js</code> + <code>lib/*.d.ts</code>, source maps included), marked <code>sideEffects: false</code>. It is meant to be consumed through a bundler.</li>
-          <li>With webpack, define the <code>COMPONENTS</code> alias even in sync mode: the async import is part of the bundle and webpack resolves it at build time.</li>
+          <li>With webpack, set <code>resolve.alias.COMPONENTS</code> even in sync mode, to your components folder or to <code>false</code>: the fallback async import is part of the bundle and webpack resolves it at build time.</li>
           <li>No runtime dependencies. Uses <code>crypto.randomUUID()</code>, <code>MutationObserver</code> and dynamic <code>import()</code>: any evergreen browser (Chrome/Edge 92+, Firefox 95+, Safari 15.4+).</li>
-          <li><strong>Async mode requires webpack</strong> and a <code>COMPONENTS</code> alias: the import path is built at runtime (<code>import(`COMPONENTS/${name}`)</code>) and only webpack turns it into a context module with one chunk per file. Vite, Rollup and esbuild leave it unresolved. Sync mode works with any bundler.</li>
+          <li><strong>Async mode works with any bundler</strong> through the <code>loadComponent</code> option: the <code>import()</code> lives in your code, so your bundler splits one chunk per component. Without it, the dispatcher falls back to <code>import(`COMPONENTS/${name}`)</code>, which only webpack resolves (with a <code>COMPONENTS</code> alias).</li>
         </ul>
 <pre><code class="language-typescript">import {
-  ComponentDispatcher, type ComponentConstructor,
+  ComponentDispatcher, type ComponentConstructor, type ComponentLoader,
   EventBus, type QueuedEvent,
   SharedState,
   Logger, LogLevel, type LogEntry
@@ -69,12 +69,14 @@
 
       <section id="dispatcher">
         <h2>ComponentDispatcher</h2>
-<pre><code class="language-typescript">new ComponentDispatcher(options?: { events?: EventBus; logger?: Logger })</code></pre>
+<pre><code class="language-typescript">new ComponentDispatcher(options?: { events?: EventBus; logger?: Logger; loadComponent?: ComponentLoader })
+
+type ComponentLoader = (name: string) =&gt; Promise&lt;{ default: ComponentConstructor }&gt;</code></pre>
         <table>
           <thead><tr><th scope="col">Member</th><th scope="col">Signature</th><th scope="col">Behaviour</th></tr></thead>
           <tbody>
             <tr><td><code>importComponents</code></td><td><code>(registry: Record&lt;string, ComponentConstructor&gt;, target?: Element | Element[]) =&gt; Promise&lt;void&gt;</code></td><td>Sync mode. Binds names present in <code>registry</code>; unknown names are ignored. Switches the dispatcher to sync mode for the observer.</td></tr>
-            <tr><td><code>importAsyncComponents</code></td><td><code>(target?: Element | Element[]) =&gt; Promise&lt;void&gt;</code></td><td>Async mode. Imports <code>COMPONENTS/&lt;name&gt;</code> once per name (cached; concurrent requests share one import; a failed import is retried on the next scan). Resolves when every constructor ran.</td></tr>
+            <tr><td><code>importAsyncComponents</code></td><td><code>(target?: Element | Element[]) =&gt; Promise&lt;void&gt;</code></td><td>Async mode. Calls <code>loadComponent(name)</code> (default: imports <code>COMPONENTS/&lt;name&gt;</code>) once per name (cached; concurrent requests share one import; a failed import is retried on the next scan). Resolves when every constructor ran.</td></tr>
             <tr><td><code>observeDomChanges</code></td><td><code>() =&gt; () =&gt; void</code></td><td>Starts a <code>MutationObserver</code> on <code>document.body</code>; returns the disconnect function. See <a href="#observer">DOM observation</a>.</td></tr>
             <tr><td><code>Selector</code></td><td><code>set (selector: string)</code></td><td>CSS selector used to find components (default <code>[data-component]</code>; empty string resets). The attribute holding the names is the first <code>data-*</code> in the selector.</td></tr>
             <tr><td><code>compAttribute</code></td><td><code>get: string</code></td><td>That attribute name without <code>data-</code>, e.g. <code>sync-component</code>.</td></tr>
@@ -92,7 +94,7 @@
         <h2>Component contract</h2>
 <pre><code class="language-typescript">type ComponentConstructor = new (element: HTMLElement, dispatcher: ComponentDispatcher) =&gt; object;
 
-export default class Tooltip {            // async mode: default export of COMPONENTS/Tooltip.ts
+export default class Tooltip {            // async mode: default export of the module loadComponent('Tooltip') returns
   constructor(element: HTMLElement, dispatcher: ComponentDispatcher) {}
   _destroy?(): void {}                     // optional, called once when the element is removed
 }</code></pre>

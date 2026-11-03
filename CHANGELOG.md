@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.1.0
+
+### Added
+
+- `new ComponentDispatcher({ loadComponent })`: async mode imports components through your own loader, so it works with Vite, Rollup, esbuild and any bundler that supports `import()`. See [Bundler setup](./README.md#bundler-setup).
+- `ComponentLoader` type export.
+- CI builds and runs a test app with webpack, Vite, Rollup and esbuild.
+
+### Fixed
+
+- The README claimed sync mode needs no alias with webpack: webpack resolves the fallback `COMPONENTS` import at build time, so `resolve.alias.COMPONENTS` must be set (to a folder or to `false`).
+
 ## 3.0.0
 
 > **2.0.0 was never released.** It only existed on the development branch, so 3.0.0 is the first release after **1.2.0**. Everything below is relative to 1.2.0.

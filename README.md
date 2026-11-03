@@ -80,7 +80,92 @@ Each element gets initialized exactly once — subsequent calls skip elements th
 
 ## Async Mode (Dynamic Import)
 
-Async mode uses dynamic `import()` to load component files on demand. It requires **webpack** and a `COMPONENTS` alias pointing to the folder where your component files live:
+Async mode loads each component file on demand, the first time an element needs it. The bundler turns every component into its own chunk.
+
+Pass a `loadComponent` function that imports a component module by name. The `import()` lives in your code, so your bundler can see it and split the chunks:
+
+```ts
+import { ComponentDispatcher } from 'html-scoped-component-importer';
+
+const dispatcher = new ComponentDispatcher({
+  loadComponent: name => import(`./components/${name}.ts`),
+});
+await dispatcher.importAsyncComponents();
+```
+
+`data-component="HelloWorldComponent"` calls `loadComponent('HelloWorldComponent')`, which must resolve to a module whose **default export** is the component class. The class is cached: the loader runs once per component name, and a failed load is retried on the next scan.
+
+### Bundler setup
+
+Each setup below is built and tested in CI ([`test/bundlers`](./test/bundlers)).
+
+#### Vite
+
+```ts
+import { ComponentDispatcher, type ComponentConstructor } from 'html-scoped-component-importer';
+
+const componentModules = import.meta.glob<{ default: ComponentConstructor }>('./components/*.ts');
+
+const dispatcher = new ComponentDispatcher({
+  loadComponent: name => componentModules[`./components/${name}.ts`](),
+});
+```
+
+No config needed.
+
+#### webpack
+
+```ts
+const dispatcher = new ComponentDispatcher({
+  loadComponent: name => import(`./components/${name}`),
+});
+```
+
+```js
+// webpack.config.js
+module.exports = {
+  resolve: {
+    alias: {
+      COMPONENTS: false,
+    },
+  },
+};
+```
+
+The library still contains the [legacy `COMPONENTS` import](#legacy-webpack-alias) as a fallback, and webpack resolves it at build time even when you pass a loader: `COMPONENTS: false` tells webpack to skip it. Without it the build fails with `Can't resolve 'COMPONENTS'`.
+
+#### esbuild
+
+```ts
+const dispatcher = new ComponentDispatcher({
+  loadComponent: name => import(`./components/${name}.ts`),
+});
+```
+
+Build with `bundle: true`, `format: 'esm'` and `splitting: true` to get one chunk per component. esbuild needs the file extension in the template.
+
+#### Rollup (or any other bundler)
+
+List the components in a map of static imports. This works with every bundler that supports `import()`:
+
+```ts
+import { ComponentDispatcher, type ComponentConstructor } from 'html-scoped-component-importer';
+
+const componentLoaders: Record<string, () => Promise<{ default: ComponentConstructor }>> = {
+  HelloWorldComponent: () => import('./components/HelloWorldComponent'),
+  CounterComponent: () => import('./components/CounterComponent'),
+};
+
+const dispatcher = new ComponentDispatcher({
+  loadComponent: name => componentLoaders[name](),
+});
+```
+
+With Rollup, add `@rollup/plugin-node-resolve` so the library's extensionless imports resolve.
+
+### Legacy webpack alias
+
+Without `loadComponent`, the dispatcher imports `COMPONENTS/<name>` and needs a webpack alias pointing at your components folder. This is the 3.0 behaviour and still works:
 
 ```js
 // webpack.config.js
@@ -94,19 +179,6 @@ module.exports = {
   },
 };
 ```
-
-### Usage
-
-```ts
-import { ComponentDispatcher } from 'html-scoped-component-importer';
-
-const dispatcher = new ComponentDispatcher();
-await dispatcher.importAsyncComponents();
-```
-
-The dispatcher resolves `data-component="HelloWorldComponent"` to `COMPONENTS/HelloWorldComponent` and caches the class after the first import — subsequent calls for the same component name skip the network round-trip.
-
-> **Bundler compatibility note:** the import path is built at runtime (`` import(`COMPONENTS/${name}`) ``). webpack splits every file in the `COMPONENTS` folder into its own chunk. **Vite, Rollup and esbuild** leave a fully dynamic path unresolved, so the alias has no effect and the components never load; Parcel is untested. With those bundlers, use [`importComponents`](#importcomponentscomps-target) (sync mode).
 
 ---
 
@@ -127,7 +199,7 @@ await dispatcher.importComponents({
 });
 ```
 
-Sync mode works with any bundler and needs no alias. Development features (error overlay, logger) turn on only when the bundler replaces `process.env.NODE_ENV` with `"development"`; webpack, Vite and esbuild do this by default. Without the replacement the library still works and simply stays in production behaviour.
+Sync mode works with any bundler. With webpack, set `alias: { COMPONENTS: false }` (or the [legacy alias](#legacy-webpack-alias)) for the reason explained in [webpack setup](#webpack). Development features (error overlay, logger) turn on only when the bundler replaces `process.env.NODE_ENV` with `"development"`; webpack, Vite and esbuild do this by default. Without the replacement the library still works and simply stays in production behaviour.
 
 ---
 
@@ -374,6 +446,7 @@ Creates a new dispatcher instance. Each instance maintains its own component reg
 |--------|------|-------------|
 | `events` | `EventBus` _(optional)_ | Bus exposed as `dispatcher.events`; a new one by default |
 | `logger` | `Logger` _(optional)_ | Logger exposed as `dispatcher.logger`; enabled in development builds by default |
+| `loadComponent` | `(name: string) => Promise<{ default: ComponentConstructor }>` _(optional)_ | Imports a component module in async mode; defaults to the [legacy webpack alias](#legacy-webpack-alias) |
 
 Component classes are constructed as `new Component(element, dispatcher)`.
 
@@ -406,7 +479,7 @@ Queries the DOM (or `target` subtree) for matching elements and instantiates the
 await dispatcher.importAsyncComponents();
 ```
 
-Same as `importComponents` but resolves classes via dynamic `import('COMPONENTS/<name>')`. Requires the `COMPONENTS` alias in your bundler. Resolved classes are cached — the dynamic import runs only once per component name.
+Same as `importComponents` but resolves classes through the `loadComponent` option (see [Bundler setup](#bundler-setup)). Resolved classes are cached — the loader runs only once per component name.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
