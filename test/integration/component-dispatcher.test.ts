@@ -207,6 +207,30 @@ describe('ComponentsDispatcher', () => {
       await vi.waitFor(() => expect(newEl.dataset.initialized).toBe('true'), { timeout: 2000 });
     });
 
+    it('initializes a component element appended directly, without a container', async () => {
+      await dispatcher.importComponents({ MockComponent });
+      observerCleanup = dispatcher.observeDomChanges();
+
+      const el = document.createElement('div');
+      el.dataset.component = 'MockComponent';
+      document.body.appendChild(el);
+
+      await vi.waitFor(() => expect(el.dataset.initialized).toBe('true'), { timeout: 2000 });
+    });
+
+    it('calls _destroy when the component element itself is removed', async () => {
+      const el = document.createElement('div');
+      el.dataset.component = 'DestroyableComponent';
+      document.body.appendChild(el);
+
+      await dispatcher.importAsyncComponents();
+      observerCleanup = dispatcher.observeDomChanges();
+
+      document.body.removeChild(el);
+
+      await vi.waitFor(() => expect(el.dataset.destroyed).toBe('true'), { timeout: 2000 });
+    });
+
     it('calls _destroy on instance when containing element is removed', async () => {
       const container = document.createElement('div');
       const el = document.createElement('div');

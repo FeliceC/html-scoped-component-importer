@@ -32,9 +32,13 @@ export default class ComponentsDispatcher {
     this.appComponents = new Map();
   }
 
+  private findComponentElements(root: Element): HTMLElement[] {
+    const descendants = [...root.querySelectorAll<HTMLElement>(this.componentSelector)];
+    return root.matches(this.componentSelector) ? [root as HTMLElement, ...descendants] : descendants;
+  }
+
   private getDomComponents(parent?: Element): HTMLElement[] {
-    const target = parent || document.body;
-    return [...target.querySelectorAll<HTMLElement>(this.componentSelector)]
+    return this.findComponentElements(parent || document.body)
       .filter(el => !el.dataset.uuid)
       .map(el => {
         el.dataset.uuid = crypto.randomUUID();
@@ -120,7 +124,7 @@ export default class ComponentsDispatcher {
 
         for (const node of mutation.removedNodes) {
           if (!(node instanceof Element)) continue;
-          for (const comp of node.querySelectorAll<HTMLElement>(this.componentSelector)) {
+          for (const comp of this.findComponentElements(node)) {
             const componentId = comp.dataset.uuid;
             if (componentId && this.appComponents.has(componentId)) {
               const instance = this.appComponents.get(componentId) as Record<string, unknown>;
