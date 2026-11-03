@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= pageTitle %></title>
+  <meta name="description" content="<%= pageDescription %>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧩</text></svg>">
+  <style>
+<%= styles %>
+  </style>
+</head>
+<body>
+<%= navigation %>
+  <header>
+    <h1>🧩 <span>html-scoped-component-importer</span></h1>
+    <p>Bind TypeScript classes to HTML with a <code>data-component</code> attribute. Components load on demand, talk through an event bus, share state, and tell you what they are doing in a friendly log.</p>
+    <span class="install"><code>npm install html-scoped-component-importer</code></span>
+    <span class="links">
+      <a href="https://github.com/FeliceC/html-scoped-component-importer">⭐ GitHub</a>
+      <a href="https://www.npmjs.com/package/html-scoped-component-importer">npm</a>
+    </span>
+  </header>
+
+  <div class="layout">
+    <main class="cards">
+      <section class="card card--violet" aria-labelledby="quick-title">
+        <h2 id="quick-title"><span class="emoji" aria-hidden="true">🚀</span>The whole idea in 30 seconds</h2>
+        <p>Mark an element, write a class that receives it, start a dispatcher. This greeting is a real component loaded right now:</p>
+        <div class="demo"><div data-component="Greeting"></div></div>
+<pre><code class="language-html">&lt;div data-component="Greeting"&gt;&lt;/div&gt;</code></pre>
+<pre><code class="language-typescript">// components/Greeting.ts
+export default class Greeting {
+  constructor(element: HTMLElement, dispatcher: ComponentDispatcher) {
+    element.textContent = 'Hello!';
+  }
+}
+
+// main.ts
+import { ComponentDispatcher } from 'html-scoped-component-importer';
+
+const dispatcher = new ComponentDispatcher();
+await dispatcher.importAsyncComponents();
+dispatcher.observeDomChanges();</code></pre>
+      </section>
+
+      <section class="card card--pink" aria-labelledby="explore-title">
+        <h2 id="explore-title"><span class="emoji" aria-hidden="true">🗺️</span>Explore</h2>
+        <p>Each page focuses on one feature, with live examples and the code behind them.</p>
+        <div class="feature-grid">
+          <a class="feature card--violet" href="./loading.html"><span class="emoji-large">⚡</span><strong>Loading components</strong><span>Async chunks, sync registries, options, DOM observation, error overlay.</span></a>
+          <a class="feature card--pink" href="./events.html"><span class="emoji-large">📬</span><strong>Event bus</strong><span>Components talk by name, and a visible queue keeps events for late listeners.</span></a>
+          <a class="feature card--sun" href="./state.html"><span class="emoji-large">🛒</span><strong>Shared state</strong><span>One object, many subscribers, immutable updates.</span></a>
+          <a class="feature card--mint" href="./logger.html"><span class="emoji-large">📜</span><strong>Logger</strong><span>Colourful scoped logs in development, silent in production.</span></a>
+        </div>
+      </section>
+    </main>
+
+<%= activityPanel %>
+  </div>
+</body>
+</html>

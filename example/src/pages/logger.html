@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= pageTitle %></title>
+  <meta name="description" content="<%= pageDescription %>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧩</text></svg>">
+  <style>
+<%= styles %>
+  </style>
+</head>
+<body>
+<%= navigation %>
+  <header>
+    <h1>📜 <span>Logger</span></h1>
+    <p>A small console logger with a colour and an emoji per level, scoped labels, and a listener API. The dispatcher, the event bus and shared states already report through it.</p>
+  </header>
+
+  <div class="layout">
+    <main class="cards">
+      <section class="card card--violet" aria-labelledby="levels-title">
+        <h2 id="levels-title"><span class="emoji" aria-hidden="true">🎚️</span>Levels</h2>
+        <p>Click a level and look at the panel, then open the browser console (DevTools) to see the coloured version.</p>
+        <div class="demo level-buttons">
+          <button type="button" data-level="debug">🔍 debug</button>
+          <button type="button" data-level="info">✨ info</button>
+          <button type="button" data-level="warn">🙈 warn</button>
+          <button type="button" data-level="error">💥 error</button>
+        </div>
+<pre><code class="language-typescript">import { Logger } from 'html-scoped-component-importer';
+
+const logger = new Logger({ scope: 'playground' });
+logger.debug('Fine-grained detail');
+logger.info('Something happened', { details: 'go here' });
+logger.warn('Careful');
+logger.error('Something broke', new Error('oops'));</code></pre>
+      </section>
+
+      <section class="card card--pink" aria-labelledby="scopes-title">
+        <h2 id="scopes-title"><span class="emoji" aria-hidden="true">🏷️</span>Scopes</h2>
+        <p><code>withScope()</code> returns a logger with another label that shares the same listeners. This demo gives each part its own scope: <code>⚡ dispatcher</code>, <code>📦 dispatcher</code>, <code>📬 events</code>, <code>🛒 cart</code>.</p>
+        <div class="demo">
+          <button type="button" id="scoped-log">🛒 Log from the checkout scope</button>
+        </div>
+<pre><code class="language-typescript">const checkoutLogger = logger.withScope('🛒 checkout');
+checkoutLogger.info('Payment form ready');
+
+new ComponentDispatcher({ logger: logger.withScope('⚡ dispatcher') });</code></pre>
+      </section>
+
+      <section class="card card--sun" aria-labelledby="listen-title">
+        <h2 id="listen-title"><span class="emoji" aria-hidden="true">👂</span>Listening to entries</h2>
+        <p><code>onEntry()</code> receives every entry as data. The <strong>Live log</strong> panel on the right is built with it.</p>
+<pre><code class="language-typescript">const stop = logger.onEntry(({ level, scope, message, details, timestamp }) =&gt; {
+  logPanel.append(`${scope} ${message}`);
+});</code></pre>
+      </section>
+
+      <section class="card card--mint" aria-labelledby="production-title">
+        <h2 id="production-title"><span class="emoji" aria-hidden="true">🤫</span>Development only</h2>
+        <p>By default the logger is enabled only when your bundler replaces <code>process.env.NODE_ENV</code> with <code>"development"</code>; in production builds it prints nothing. Override it either way:</p>
+<pre><code class="language-typescript">new Logger({ enabled: true });  // always on (this demo)
+new Logger({ enabled: false }); // always silent</code></pre>
+      </section>
+    </main>
+
+<%= activityPanel %>
+  </div>
+</body>
+</html>

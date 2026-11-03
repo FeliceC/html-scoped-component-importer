@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= pageTitle %></title>
+  <meta name="description" content="<%= pageDescription %>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧩</text></svg>">
+  <style>
+<%= styles %>
+  </style>
+</head>
+<body>
+<%= navigation %>
+  <header>
+    <h1>📬 <span>Event bus</span></h1>
+    <p>Components emit and listen to named events without knowing about each other. Events nobody listens to yet wait in a queue.</p>
+  </header>
+
+  <div class="layout">
+    <main class="cards">
+      <section class="card card--pink" aria-labelledby="events-title">
+        <h2 id="events-title"><span class="emoji" aria-hidden="true">📬</span>Event bus with a queue</h2>
+        <p>Components talk without importing each other: one <strong>emits</strong> a named event, others <strong>listen</strong> to it. If an event is emitted while nobody listens yet (for example a component that loads later), it waits in a <strong>queue</strong> instead of being lost.</p>
+        <p class="hint">👉 Add a few products while the listener is <em>offline</em>: they pile up in the queue. Press <strong>Connect listener</strong> and they are delivered in order. Disconnect and try again.</p>
+        <div class="pipeline">
+          <div class="stage">
+            <h3>Emitter</h3>
+            <div data-component="ProductList"></div>
+          </div>
+          <div class="stage stage--queue">
+            <h3>Queue <span class="queue-count" id="queue-count">0</span></h3>
+            <ul class="queue-lane" id="queue-list" aria-live="polite"></ul>
+          </div>
+          <div class="stage stage--listener">
+            <h3>Listener <span class="listener-status" id="listener-status" data-connected="false">offline</span></h3>
+            <button type="button" id="listener-toggle">🔌 Connect listener</button>
+            <div id="notification-slot"></div>
+          </div>
+        </div>
+
+        <h3 class="guide-title">How to use it</h3>
+        <ol class="guide">
+          <li>
+            <p><strong>Create one bus</strong> and share it. Either export it from a module, or use the one every dispatcher already has: <code>dispatcher.events</code>.</p>
+<pre><code class="language-typescript">// shared.ts
+import { EventBus } from 'html-scoped-component-importer';
+
+export const events = new EventBus();</code></pre>
+          </li>
+          <li>
+            <p><strong>Emit</strong> from any component with an event name and a payload.</p>
+<pre><code class="language-typescript">// components/ProductList.ts
+button.addEventListener('click', () => {
+  events.emit('notify', `${product.name} added to the cart`);
+});</code></pre>
+          </li>
+          <li>
+            <p><strong>Listen</strong> in another component. <code>on()</code> returns an unsubscribe function: call it in <code>_destroy()</code> so a removed component stops listening.</p>
+<pre><code class="language-typescript">// components/NotificationCenter.ts
+export default class NotificationCenter {
+  private readonly unsubscribe: () =&gt; void;
+
+  constructor(element: HTMLElement) {
+    this.unsubscribe = events.on&lt;string&gt;('notify', message =&gt; showToast(message));
+  }
+
+  _destroy() {
+    this.unsubscribe();
+  }
+}</code></pre>
+          </li>
+        </ol>
+
+        <h3 class="guide-title">Queue rules</h3>
+        <ul class="rules">
+          <li>⏳ An event is queued <strong>only when its name has no listener</strong>; otherwise it is delivered immediately.</li>
+          <li>🥇 Queued events go to the <strong>first listener</strong> that subscribes to that name, in emit order, then leave the queue.</li>
+          <li>🧺 At most <strong>50 events per name</strong> are kept (oldest dropped first): <code>new EventBus({ maximumQueuedPerEvent: 20 })</code>.</li>
+          <li>🔭 Inspect it with <code>events.queuedEvents</code> or <code>events.onQueueChange(queued =&gt; …)</code>, which is how the queue above is drawn.</li>
+        </ul>
+      </section>
+
+      <section class="card card--violet" aria-labelledby="broadcast-title">
+        <h2 id="broadcast-title"><span class="emoji" aria-hidden="true">📣</span>One event, many listeners</h2>
+        <p>Every listener of a name receives each event. These three swatches are independent components listening to <code>theme:accent</code>.</p>
+        <div class="demo">
+          <button type="button" id="broadcast-accent">🎨 Broadcast a new colour</button>
+          <div class="swatch" data-component="Swatch"></div>
+          <div class="swatch" data-component="Swatch"></div>
+          <div class="swatch" data-component="Swatch"></div>
+        </div>
+<pre><code class="language-typescript">// main.ts
+events.emit('theme:accent', '#ff5fa2');
+
+// components/Swatch.ts
+this.unsubscribe = events.on&lt;string&gt;('theme:accent', colour =&gt; {
+  element.style.background = colour;
+});</code></pre>
+      </section>
+
+      <section class="card card--sun" aria-labelledby="limit-title">
+        <h2 id="limit-title"><span class="emoji" aria-hidden="true">🧺</span>Queue limit</h2>
+        <p>This bus keeps at most <strong>3</strong> queued events per name. Keep clicking: the oldest one is dropped and the log shows a warning.</p>
+        <div class="demo">
+          <button type="button" id="emit-tick">⏱️ Emit tick</button>
+          <ul class="queue-lane" id="limited-queue" aria-live="polite"></ul>
+        </div>
+<pre><code class="language-typescript">const smallBus = new EventBus({ maximumQueuedPerEvent: 3 });
+smallBus.emit('tick', 1); // … the 4th tick drops tick 1</code></pre>
+      </section>
+    </main>
+
+<%= activityPanel %>
+  </div>
+</body>
+</html>

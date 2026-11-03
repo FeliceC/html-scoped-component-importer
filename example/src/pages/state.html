@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= pageTitle %></title>
+  <meta name="description" content="<%= pageDescription %>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧩</text></svg>">
+  <style>
+<%= styles %>
+  </style>
+</head>
+<body>
+<%= navigation %>
+  <header>
+    <h1>🛒 <span>Shared state</span></h1>
+    <p>A <code>SharedState</code> holds one object. Components read it, update it, and re-render when it changes.</p>
+  </header>
+
+  <div class="layout">
+    <main class="cards">
+      <section class="card card--pink" aria-labelledby="shop-title">
+        <h2 id="shop-title"><span class="emoji" aria-hidden="true">🛍️</span>A tiny shop</h2>
+        <p>These buttons are a component that updates the cart state. Everything else on the page that subscribes to it reacts on its own.</p>
+        <div class="demo"><div data-component="ProductList"></div></div>
+      </section>
+
+      <section class="card card--sun" aria-labelledby="state-title">
+        <h2 id="state-title"><span class="emoji" aria-hidden="true">🛒</span>Shared state</h2>
+        <p>A <code>SharedState</code> holds one object that several components read and update. Every change notifies the subscribers, so the badge below re-renders by itself when the product buttons above add to the cart.</p>
+        <div class="pipeline pipeline--two">
+          <div class="stage stage--state">
+            <h3>Subscriber</h3>
+            <span class="badge" data-component="CartBadge"></span>
+            <button type="button" class="secondary" id="clear-cart">🧹 Empty the cart</button>
+          </div>
+          <div class="stage stage--inspector">
+            <h3>Current state</h3>
+<pre class="state-inspector"><code id="state-inspector" class="language-json"></code></pre>
+          </div>
+        </div>
+
+        <h3 class="guide-title">How to use it</h3>
+        <ol class="guide">
+          <li>
+            <p><strong>Create the state</strong> once with its initial value and share it (a module export, or <code>dispatcher.createState('cart', …)</code> to get its changes in the log).</p>
+<pre><code class="language-typescript">// shared.ts
+import { SharedState } from 'html-scoped-component-importer';
+
+export const cartState = new SharedState({ items: [] as Product[] });</code></pre>
+          </li>
+          <li>
+            <p><strong>Update</strong> with <code>set()</code>: pass the changed keys, or a function of the current state. Changes are shallow-merged and the state is frozen, so never mutate it directly.</p>
+<pre><code class="language-typescript">// components/ProductList.ts
+cartState.set(current =&gt; ({ items: [...current.items, product] }));
+
+// anywhere
+cartState.set({ items: [] });</code></pre>
+          </li>
+          <li>
+            <p><strong>Read and subscribe</strong>: <code>get()</code> returns the current value, <code>subscribe()</code> calls you with the next and previous state and returns an unsubscribe function for <code>_destroy()</code>.</p>
+<pre><code class="language-typescript">// components/CartBadge.ts
+const render = () =&gt; {
+  element.textContent = `🛒 ${cartState.get().items.length} item(s)`;
+};
+render();
+this.unsubscribe = cartState.subscribe(render);</code></pre>
+          </li>
+        </ol>
+      </section>
+
+      <section class="card card--mint" aria-labelledby="mood-title">
+        <h2 id="mood-title"><span class="emoji" aria-hidden="true">🎭</span>Several subscribers, previous and next state</h2>
+        <p>Three components subscribe to the same <code>moodState</code>. The last one uses the <em>previous</em> state passed to subscribers to show what changed.</p>
+        <div class="demo">
+          <button type="button" data-mood="happy">😀 Happy</button>
+          <button type="button" data-mood="sleepy">😴 Sleepy</button>
+          <button type="button" data-mood="party">🥳 Party</button>
+        </div>
+        <div class="demo">
+          <span class="mood-face" data-component="MoodFace"></span>
+          <span class="mood-title" data-component="MoodTitle"></span>
+          <span class="mood-diff" data-component="MoodDiff"></span>
+        </div>
+<pre><code class="language-typescript">export const moodState = new SharedState({ mood: 'happy' });
+
+// components/MoodDiff.ts
+moodState.subscribe((next, previous) =&gt; {
+  element.textContent = `${previous.mood} → ${next.mood}`;
+});</code></pre>
+      </section>
+    </main>
+
+<%= activityPanel %>
+  </div>
+</body>
+</html>

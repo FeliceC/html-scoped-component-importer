@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= pageTitle %></title>
+  <meta name="description" content="<%= pageDescription %>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧩</text></svg>">
+  <style>
+<%= styles %>
+  </style>
+</head>
+<body>
+<%= navigation %>
+  <header>
+    <h1>⚡ <span>Loading components</span></h1>
+    <p>Two ways to bind classes to elements (dynamic imports or an explicit registry) plus everything around them: options, several components per element, DOM changes and errors.</p>
+  </header>
+
+  <div class="layout">
+    <main class="cards">
+      <section class="card card--violet" aria-labelledby="async-title">
+        <h2 id="async-title"><span class="emoji" aria-hidden="true">⚡</span>Async mode</h2>
+        <p>The dispatcher resolves <code>COMPONENTS/Greeting</code> with a dynamic <code>import()</code>: webpack ships it as its own chunk, fetched only when the element exists.</p>
+        <div class="demo"><div data-component="Greeting"></div></div>
+<pre><code class="language-html">&lt;div data-component="Greeting"&gt;&lt;/div&gt;</code></pre>
+<pre><code class="language-typescript">const dispatcher = new ComponentDispatcher();
+await dispatcher.importAsyncComponents();</code></pre>
+      </section>
+
+      <section class="card card--sky" aria-labelledby="sync-title">
+        <h2 id="sync-title"><span class="emoji" aria-hidden="true">🕒</span>Sync mode with a custom selector</h2>
+        <p>A second dispatcher uses an explicit registry and its own attribute. No dynamic import, so it works with any bundler.</p>
+        <div class="demo"><span class="clock" data-sync-component="Clock"></span></div>
+<pre><code class="language-html">&lt;span data-sync-component="Clock"&gt;&lt;/span&gt;</code></pre>
+<pre><code class="language-typescript">const dispatcher = new ComponentDispatcher();
+dispatcher.Selector = '[data-sync-component]';
+await dispatcher.importComponents({ Clock });</code></pre>
+      </section>
+
+      <section class="card card--sky" aria-labelledby="target-title">
+        <h2 id="target-title"><span class="emoji" aria-hidden="true">🎯</span>Scan only a subtree</h2>
+        <p>Pass a <code>target</code> to set up components inside one element only, for example after injecting HTML you fetched. Elements already set up are skipped.</p>
+        <div class="demo">
+          <button type="button" id="inject-clocks">💉 Inject two clocks and scan the box</button>
+          <div class="scoped-box" id="scoped-box"></div>
+        </div>
+<pre><code class="language-typescript">box.innerHTML = '&lt;span data-sync-component="Clock"&gt;&lt;/span&gt;'.repeat(2);
+await dispatcher.importComponents({ Clock }, box);</code></pre>
+      </section>
+
+      <section class="card card--sun" aria-labelledby="multiple-title">
+        <h2 id="multiple-title"><span class="emoji" aria-hidden="true">🎛️</span>Several components, options from data attributes</h2>
+        <p><code>Counter</code> reads its start value and step from <code>data-option-*</code>; <code>Highlight</code> decorates the same element.</p>
+        <div class="demo"><div data-component="Counter, Highlight" data-option-start="10" data-option-step="5"></div></div>
+<pre><code class="language-html">&lt;div data-component="Counter, Highlight"
+     data-option-start="10" data-option-step="5"&gt;&lt;/div&gt;</code></pre>
+      </section>
+
+      <section class="card card--mint" aria-labelledby="observer-title">
+        <h2 id="observer-title"><span class="emoji" aria-hidden="true">👀</span>Observing DOM changes</h2>
+        <p>With <code>observeDomChanges()</code> new elements are mounted automatically and removed ones get <code>_destroy()</code>. Watch the log.</p>
+        <div class="demo">
+          <button type="button" id="add-card">➕ Add card</button>
+          <button type="button" class="secondary" id="remove-card">➖ Remove last</button>
+          <div class="live-area" id="live-area" aria-live="polite"></div>
+        </div>
+<pre><code class="language-typescript">const stopObserving = dispatcher.observeDomChanges();</code></pre>
+      </section>
+
+      <section class="card card--pink" aria-labelledby="error-title">
+        <h2 id="error-title"><span class="emoji" aria-hidden="true">💥</span>Error overlay</h2>
+        <p>A component that throws does not break the others. In development builds it is replaced by an overlay with the stack trace.</p>
+        <div class="demo"><div data-component="FailingWidget"></div></div>
+      </section>
+    </main>
+
+<%= activityPanel %>
+  </div>
+</body>
+</html>
