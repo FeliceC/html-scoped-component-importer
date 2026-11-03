@@ -24,7 +24,15 @@ function renderLogEntry(entry: LogEntry): void {
   scope.textContent = entry.scope;
   const message = document.createElement('span');
   message.className = 'log-entry__message';
-  message.textContent = entry.message;
+  message.append(...entry.message.split(/(https:\/\/\S+)/).map(part => {
+    if (!part.startsWith('https://')) return part;
+    const link = document.createElement('a');
+    link.href = part;
+    link.textContent = part.replace('https://', '');
+    link.target = '_blank';
+    link.rel = 'noopener';
+    return link;
+  }));
   item.append(time, scope, message);
   logList.prepend(item);
   while (logList.children.length > MAXIMUM_LOG_ENTRIES) logList.lastElementChild!.remove();

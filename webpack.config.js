@@ -56,12 +56,12 @@ module.exports = {
     template: path.join(demoDirectory, 'pages', `${page.name}.html`),
     filename: page.fileName,
     chunks: [page.name],
-    templateParameters: {
+    templateParameters: () => ({
       pageTitle: page.title,
       pageDescription: page.description,
       styles: readLayoutPartial('styles.css'),
       activityPanel: readLayoutPartial('activity.html'),
       navigation: renderNavigation(page)
-    }
+    })
   }))
 };
