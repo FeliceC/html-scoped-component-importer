@@ -139,6 +139,9 @@ export default class ComponentsDispatcher {
       this.importedComponents.set(compName, ComponentClass);
       this.pendingImports.delete(compName);
       return ComponentClass;
+    }, error => {
+      this.pendingImports.delete(compName);
+      throw error;
     });
     this.pendingImports.set(compName, promise);
     return promise;
