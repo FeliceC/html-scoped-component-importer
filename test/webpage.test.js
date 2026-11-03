@@ -1,66 +1,39 @@
-describe("web page", () => {
+describe('demo page', () => {
   beforeEach(async () => {
-    await page.goto(PATH, { waitUntil: "load" });
-  });
-  test("should render dynamic component", async () => {
-    await page.waitForSelector('[data-component]');
-    const dynamicComponent = await page.evaluate(() => {
-      return {
-        innerHTML: document.querySelector('[data-component="HelloWorldComponent"]').innerHTML,
-        compName: document.querySelector('[data-component="HelloWorldComponent"]').dataset.component
-      }
-    });
-
-    expect(dynamicComponent).toBeDefined();
-    expect(dynamicComponent.innerHTML).toBe(dynamicComponent.compName);
-    console.table(dynamicComponent);
-  });
-  test("should render typescript dynamic component", async () => {
-    await page.waitForSelector('[data-component]');
-    const dynamicComponent = await page.evaluate(() => {
-      return {
-        innerHTML: document.querySelector('[data-component="HelloWorldTSComponent"]').innerHTML,
-        compName: document.querySelector('[data-component="HelloWorldTSComponent"]').dataset.component
-      };
-    });
-
-    expect(dynamicComponent).toBeDefined();
-    expect(dynamicComponent.innerHTML).toBe(dynamicComponent.compName);
-    console.table(dynamicComponent);
+    await page.goto(PATH, { waitUntil: 'networkidle0' });
   });
 
-  test("should initialize component injected dynamically after page load", async () => {
-    // Wrap in container: MutationObserver passes the added node to importAsyncComponents,
-    // which calls querySelectorAll on it (descendants only, not the node itself).
-    await page.evaluate(() => {
-      const container = document.createElement('div');
-      const el = document.createElement('div');
-      el.setAttribute('data-component', 'HelloWorldComponent');
-      container.appendChild(el);
-      document.body.appendChild(container);
-    });
-
-    await page.waitForFunction(() => {
-      const all = document.querySelectorAll('[data-component="HelloWorldComponent"]');
-      return Array.from(all).filter(el => el.dataset.uuid).length >= 2;
-    }, { timeout: 5000 });
-
-    const initializedCount = await page.evaluate(() => {
-      const all = document.querySelectorAll('[data-component="HelloWorldComponent"]');
-      return Array.from(all).filter(el => el.dataset.uuid).length;
-    });
-
-    expect(initializedCount).toBeGreaterThanOrEqual(2);
+  test('loads an async component chunk on demand', async () => {
+    const greeting = await page.$eval('[data-component="Greeting"]', element => element.textContent);
+    expect(greeting).toContain('fetched on demand');
   });
 
-  test("should assign data-uuid to all initialized components", async () => {
-    await page.waitForSelector('[data-component]');
+  test('initializes a sync component bound to a custom multi-word attribute', async () => {
+    await page.waitForFunction(() => document.querySelector('[data-sync-component="Clock"]').textContent !== '');
+  });
 
-    const allHaveUuid = await page.evaluate(() => {
-      const all = document.querySelectorAll('[data-component]');
-      return Array.from(all).every(el => el.dataset.uuid);
-    });
+  test('mounts and destroys components added and removed after page load', async () => {
+    await page.click('#add-card');
+    await page.click('#add-card');
+    await page.waitForFunction(() => document.querySelectorAll('.live-card[data-uuid]').length === 2);
+    await page.click('#remove-card');
+    await page.waitForFunction(() => [...document.querySelectorAll('#log-list li')].some(item => item.textContent.includes('_destroy() called')));
+  });
 
-    expect(allHaveUuid).toBe(true);
+  test('queues events until the first listener mounts, then delivers them', async () => {
+    const productButtons = await page.$$('[data-component="ProductList"] button');
+    await productButtons[0].click();
+    await productButtons[1].click();
+    expect(await page.$eval('#queue-count', element => element.textContent)).toBe('2');
+    expect(await page.$eval('[data-component="CartBadge"]', element => element.textContent)).toContain('2 item(s)');
+
+    await page.click('#mount-notifications');
+    await page.waitForFunction(() => document.querySelectorAll('.notifications li').length === 2);
+    expect(await page.$eval('#queue-count', element => element.textContent)).toBe('0');
+  });
+
+  test('assigns a data-uuid to every component element', async () => {
+    const everyElementHasUuid = await page.$$eval('[data-component], [data-sync-component]', elements => elements.every(element => element.dataset.uuid));
+    expect(everyElementHasUuid).toBe(true);
   });
 });

@@ -1,12 +1,189 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="utf-8">
-  <title>Test page</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scoped Component Importer</title>
+  <meta name="description" content="Live demo of html-scoped-component-importer: async and sync component loading, DOM observation, shared events with a visible queue, shared state and a development logger.">
+  <style>
+    :root {
+      --background: #f6f5f1;
+      --surface: #ffffff;
+      --surface-sunken: #f0efea;
+      --text: #1c1b18;
+      --muted: #6a6862;
+      --border: #e3e1da;
+      --accent: #4f46e5;
+      --accent-soft: #eceafd;
+      --success: #16a34a;
+      --warning: #c2780c;
+      --danger: #dc2626;
+      --debug: #8a8780;
+      --radius: 14px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --background: #121210;
+        --surface: #1c1b19;
+        --surface-sunken: #161614;
+        --text: #eceae4;
+        --muted: #9d9a92;
+        --border: #2e2d29;
+        --accent: #8b85ff;
+        --accent-soft: #26244a;
+        --success: #4ade80;
+        --warning: #f0a83a;
+        --danger: #f87171;
+        --debug: #8a8780;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--background);
+      color: var(--text);
+      font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    a { color: var(--accent); }
+    code, pre, time { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+    header { max-width: 1240px; margin: 0 auto; padding: 48px 16px 24px; }
+    header h1 { font-size: clamp(28px, 4vw, 40px); line-height: 1.15; margin: 0 0 8px; letter-spacing: -0.02em; }
+    header p { color: var(--muted); max-width: 640px; margin: 0 0 16px; }
+    .install { display: inline-block; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 6px 14px; font-size: 13px; }
+    .links { display: inline-flex; gap: 16px; margin-left: 12px; font-size: 14px; }
+    .layout { max-width: 1240px; margin: 0 auto; padding: 0 16px 64px; display: grid; gap: 24px; grid-template-columns: minmax(0, 1fr) 380px; align-items: start; }
+    @media (max-width: 960px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+    .cards { display: grid; gap: 20px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; }
+    .card h2 { font-size: 17px; margin: 0 0 4px; display: flex; align-items: center; gap: 10px; }
+    .card h2 .step { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-size: 13px; }
+    .card > p { color: var(--muted); margin: 0 0 16px; font-size: 14px; }
+    .demo { background: var(--surface-sunken); border-radius: 10px; padding: 16px; margin-bottom: 14px; min-height: 56px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    pre { margin: 0; background: var(--surface-sunken); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; overflow-x: auto; font-size: 12.5px; line-height: 1.6; }
+    button {
+      font: inherit; font-size: 14px; font-weight: 600;
+      background: var(--accent); color: #fff; border: 0; border-radius: 8px; padding: 8px 14px; cursor: pointer;
+    }
+    button:hover { filter: brightness(1.08); }
+    button:disabled { opacity: .5; cursor: default; }
+    button.secondary { background: transparent; color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+    button:focus-visible { outline: 3px solid var(--accent-soft); outline-offset: 2px; }
+    output { font: 600 22px ui-monospace, monospace; min-width: 48px; }
+    .is-highlighted { box-shadow: inset 0 0 0 2px var(--accent); background: var(--accent-soft); border-radius: 10px; padding: 6px 10px; display: inline-flex; gap: 10px; align-items: center; }
+    .live-area { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; }
+    .live-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font: 600 13px ui-monospace, monospace; animation: pop .25s ease-out; }
+    @keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .badge { font-weight: 600; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 6px 14px; }
+    .notifications ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+    .notifications li { background: var(--surface); border-left: 3px solid var(--success); border-radius: 6px; padding: 6px 10px; font-size: 13px; animation: pop .25s ease-out; }
+    #notification-slot { width: 100%; }
+    aside { position: sticky; top: 16px; display: grid; gap: 16px; }
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .panel h2 { font-size: 14px; margin: 0; padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .counter-pill { background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 1px 9px; font-size: 12px; }
+    .panel ul { list-style: none; margin: 0; padding: 8px; display: grid; gap: 4px; }
+    .queue-item { display: flex; gap: 8px; align-items: center; background: var(--surface-sunken); border-radius: 8px; padding: 6px 10px; font-size: 13px; animation: pop .25s ease-out; }
+    .queue-item code { color: var(--warning); font-weight: 600; }
+    .queue-item span { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .queue-empty { color: var(--muted); font-size: 13px; padding: 6px 10px; }
+    #log-list { max-height: 52vh; overflow-y: auto; }
+    .log-entry { display: grid; grid-template-columns: auto auto 1fr; gap: 8px; align-items: baseline; font-size: 12.5px; padding: 4px 8px; border-radius: 6px; border-left: 3px solid var(--debug); }
+    .log-entry time { color: var(--muted); font-size: 11px; }
+    .log-entry__scope { font: 600 11px ui-monospace, monospace; color: var(--muted); }
+    .log-entry--info { border-left-color: var(--accent); }
+    .log-entry--warn { border-left-color: var(--warning); }
+    .log-entry--error { border-left-color: var(--danger); background: color-mix(in srgb, var(--danger) 8%, transparent); }
+  </style>
 </head>
-
 <body>
-  <div data-component="HelloWorldComponent"></div>
-  <div data-component="HelloWorldTSComponent"></div>
+  <header>
+    <h1>html-scoped-component-importer</h1>
+    <p>Bind TypeScript classes to HTML with a <code>data-component</code> attribute. Every card below is live, and the panel on the right shows the queue and the log as you click.</p>
+    <span class="install"><code>npm install html-scoped-component-importer</code></span>
+    <span class="links">
+      <a href="https://github.com/FeliceC/html-scoped-component-importer">GitHub</a>
+      <a href="https://www.npmjs.com/package/html-scoped-component-importer">npm</a>
+    </span>
+  </header>
+
+  <div class="layout">
+    <main class="cards">
+      <section class="card" aria-labelledby="async-title">
+        <h2 id="async-title"><span class="step">1</span>Async mode</h2>
+        <p>The dispatcher resolves <code>COMPONENTS/Greeting</code> with a dynamic <code>import()</code>: webpack ships it as its own chunk, fetched only when the element exists.</p>
+        <div class="demo"><div data-component="Greeting"></div></div>
+<pre><code>&lt;div data-component="Greeting"&gt;&lt;/div&gt;
+
+const dispatcher = new ComponentDispatcher();
+await dispatcher.importAsyncComponents();</code></pre>
+      </section>
+
+      <section class="card" aria-labelledby="sync-title">
+        <h2 id="sync-title"><span class="step">2</span>Sync mode with a custom selector</h2>
+        <p>A second dispatcher uses an explicit registry and its own attribute. No dynamic import, so it works with any bundler.</p>
+        <div class="demo">🕒 <span data-sync-component="Clock"></span></div>
+<pre><code>&lt;span data-sync-component="Clock"&gt;&lt;/span&gt;
+
+const dispatcher = new ComponentDispatcher();
+dispatcher.Selector = '[data-sync-component]';
+await dispatcher.importComponents({ Clock });</code></pre>
+      </section>
+
+      <section class="card" aria-labelledby="multiple-title">
+        <h2 id="multiple-title"><span class="step">3</span>Several components, options from data attributes</h2>
+        <p><code>Counter</code> reads its start value and step from <code>data-option-*</code>; <code>Highlight</code> decorates the same element.</p>
+        <div class="demo"><div data-component="Counter, Highlight" data-option-start="10" data-option-step="5"></div></div>
+<pre><code>&lt;div data-component="Counter, Highlight"
+     data-option-start="10" data-option-step="5"&gt;&lt;/div&gt;</code></pre>
+      </section>
+
+      <section class="card" aria-labelledby="observer-title">
+        <h2 id="observer-title"><span class="step">4</span>Observing DOM changes</h2>
+        <p>With <code>observeDomChanges()</code> new elements are mounted automatically and removed ones get <code>_destroy()</code>. Watch the log.</p>
+        <div class="demo">
+          <button type="button" id="add-card">Add card</button>
+          <button type="button" class="secondary" id="remove-card">Remove last</button>
+          <div class="live-area" id="live-area" aria-live="polite"></div>
+        </div>
+<pre><code>const stopObserving = dispatcher.observeDomChanges();</code></pre>
+      </section>
+
+      <section class="card" aria-labelledby="events-title">
+        <h2 id="events-title"><span class="step">5</span>Shared state and events with a queue</h2>
+        <p>Products update a <code>SharedState</code> that the badge subscribes to, and emit <code>notify</code>. Nobody listens to <code>notify</code> yet, so the events wait in the <strong>queue</strong> on the right until you mount the notification center.</p>
+        <div class="demo">
+          <div data-component="ProductList"></div>
+          <span class="badge" data-component="CartBadge"></span>
+        </div>
+        <div class="demo">
+          <button type="button" id="mount-notifications">Mount notification center</button>
+          <div id="notification-slot"></div>
+        </div>
+<pre><code>const events = new EventBus();
+const cart = new SharedState({ items: [] });
+
+cart.set(state =&gt; ({ items: [...state.items, product] }));
+events.emit('notify', 'Notebook added');   // queued until…
+events.on('notify', message =&gt; render(message)); // …the first listener arrives</code></pre>
+      </section>
+
+      <section class="card" aria-labelledby="error-title">
+        <h2 id="error-title"><span class="step">6</span>Error overlay</h2>
+        <p>A component that throws does not break the others. In development builds it is replaced by an overlay with the stack trace.</p>
+        <div class="demo"><div data-component="FailingWidget"></div></div>
+      </section>
+    </main>
+
+    <aside aria-label="Live activity">
+      <section class="panel" aria-labelledby="queue-title">
+        <h2 id="queue-title">Event queue <span class="counter-pill" id="queue-count">0</span></h2>
+        <ul id="queue-list" aria-live="polite"></ul>
+      </section>
+      <section class="panel" aria-labelledby="log-title">
+        <h2 id="log-title">Log</h2>
+        <ul id="log-list"></ul>
+      </section>
+    </aside>
+  </div>
 </body>
+</html>
