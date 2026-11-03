@@ -9,7 +9,8 @@
   "packageManager": "yarn@1.22.22",
   "description": "Async html scoped components dispatcher",
   "repository": "https://github.com/FeliceC/html-scoped-component-importer",
-  "author": "Felice Caricati <felice.caricati@gmail.com>",
+  "author": "Felice Caricati <felice.caricati@gmail.com> (https://www.felicecaricati.com)",
+  "homepage": "https://felicec.github.io/html-scoped-component-importer/",
   "scripts": {
     "start": "webpack-dev-server --mode development --open",
     "build": "webpack --mode production",

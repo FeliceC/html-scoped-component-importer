@@ -44,7 +44,7 @@ export default class ComponentsDispatcher {
       this.logger.celebrate([
         'Thanks for using html-scoped-component-importer! 💜',
         '🌟 Enjoying it? Leave a star → https://github.com/FeliceC/html-scoped-component-importer',
-        '👋 Made with care by Felice Caricati'
+        '👋 Made with care by Felice Caricati · https://www.felicecaricati.com'
       ].join('\n'));
     }
     this.componentSelector = '[data-component]';
