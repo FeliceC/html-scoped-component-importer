@@ -1,8 +1,7 @@
 import EventBus from '../events/EventBus';
 import Logger from '../logger/Logger';
 import SharedState from '../state/SharedState';
-
-declare const process: { env: { NODE_ENV: string } };
+import isDevelopmentBuild from '../environment/isDevelopmentBuild';
 
 export type ComponentConstructor = new (element: HTMLElement, dispatcher: ComponentsDispatcher) => object;
 
@@ -33,7 +32,7 @@ export default class ComponentsDispatcher {
 
   /**
    * @param options.events share one event bus between dispatchers or with code outside components
-   * @param options.logger defaults to a logger enabled outside production builds
+   * @param options.logger defaults to a logger enabled only in development builds
    */
   constructor(options: { events?: EventBus; logger?: Logger } = {}) {
     this.logger = options.logger ?? new Logger({ scope: 'dispatcher' });
@@ -174,7 +173,7 @@ export default class ComponentsDispatcher {
   }
 
   private reportInitializationError(element: HTMLElement, componentName: string, error: unknown): void {
-    if (process.env.NODE_ENV === 'development') {
+    if (isDevelopmentBuild()) {
       this.renderDevError(element, componentName, error);
     } else {
       console.error(`[${componentName}] initialization error on el =>`, element, 'with error =>', error);

@@ -1,4 +1,4 @@
-declare const process: { env: { NODE_ENV: string } };
+import isDevelopmentBuild from '../environment/isDevelopmentBuild';
 
 export enum LogLevel {
   Debug = 'debug',
@@ -31,11 +31,11 @@ export default class Logger {
 
   /**
    * @param options.scope label shown before every message
-   * @param options.enabled defaults to true outside production builds
+   * @param options.enabled defaults to true only in development builds
    */
   constructor(options: { scope?: string; enabled?: boolean } = {}, entryListeners: Set<LogEntryListener> = new Set()) {
     this.scope = options.scope ?? 'app';
-    this.enabled = options.enabled ?? process.env.NODE_ENV !== 'production';
+    this.enabled = options.enabled ?? isDevelopmentBuild();
     this.entryListeners = entryListeners;
   }
 
