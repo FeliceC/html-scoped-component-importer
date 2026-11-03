@@ -9,15 +9,15 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const bundlerBuilds = {
   vite: () => buildWithVite({
     configFile: path.resolve(__dirname, 'vite.config.js'),
-    logLevel: 'warn',
+    logLevel: 'warn'
   }),
   esbuild: () => buildWithEsbuild({
     entryPoints: [path.resolve(__dirname, 'fixture/main.ts')],
     bundle: true,
     platform: 'browser',
     format: 'esm',
-    outfile: path.resolve(__dirname, 'dist/esbuild/bundle.js'),
-  }),
+    outfile: path.resolve(__dirname, 'dist/esbuild/bundle.js')
+  })
 };
 
 let failedBuildCount = 0;

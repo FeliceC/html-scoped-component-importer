@@ -12,8 +12,8 @@ export default defineConfig({
     rollupOptions: {
       input: path.resolve(__dirname, 'fixture/main.ts'),
       output: {
-        entryFileNames: 'bundle.js',
-      },
-    },
-  },
+        entryFileNames: 'bundle.js'
+      }
+    }
+  }
 });
