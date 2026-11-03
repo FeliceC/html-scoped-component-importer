@@ -12,7 +12,8 @@
   },
   "sideEffects": false,
   "files": [
-    "lib"
+    "lib",
+    "CHANGELOG.md"
   ],
   "license": "MIT",
   "packageManager": "yarn@1.22.22",
