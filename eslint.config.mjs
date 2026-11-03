@@ -11,6 +11,8 @@ export default tseslint.config(
     },
     rules: {
       'no-console': ['error', { allow: ['error', 'warn'] }],
+      // House style: `let` for every binding declared inside a loop.
+      'prefer-const': 'off',
       'no-debugger': 'error',
       'no-alert': 'error',
       'no-param-reassign': 'off',
