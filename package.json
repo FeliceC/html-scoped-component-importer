@@ -2,6 +2,9 @@
   "name": "html-scoped-component-importer",
   "version": "2.0.0",
   "main": "./src/index.ts",
+  "files": [
+    "src"
+  ],
   "license": "MIT",
   "packageManager": "yarn@1.22.22",
   "description": "Async html scoped components dispatcher",
@@ -27,9 +30,11 @@
     "@babel/core": "^7.29.7",
     "@babel/plugin-transform-runtime": "^7.29.7",
     "@babel/preset-env": "^7.29.7",
+    "@babel/runtime": "^7.29.7",
     "@eslint/js": "^9.0.0",
     "babel-loader": "^10.1.1",
     "core-js": "^3.49.0",
+    "esbuild": "^0.25.0",
     "eslint": "^10.4.0",
     "express": "^5.2.1",
     "globals": "^16.0.0",
@@ -48,8 +53,7 @@
     "webpack": "^5.107.2",
     "webpack-cli": "^7.0.3",
     "webpack-dev-middleware": "^8.0.3",
-    "webpack-dev-server": "^5.2.4",
-    "esbuild": "^0.25.0"
+    "webpack-dev-server": "^5.2.4"
   },
   "browserslist": [
     "Chrome >= 92",
@@ -57,9 +61,5 @@
     "Safari >= 15.4",
     "Edge >= 92",
     "iOS >= 15.4"
-  ],
-  "dependencies": {
-    "@babel/runtime": "^7.29.7",
-    "http-server": "^14.1.1"
-  }
+  ]
 }
