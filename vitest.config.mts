@@ -4,7 +4,7 @@ import path from 'path';
 export default defineConfig({
   resolve: {
     alias: {
-      COMPONENTS: path.resolve(__dirname, 'test/fixtures/components'),
+      COMPONENTS: path.resolve(import.meta.dirname, 'test/fixtures/components'),
     },
   },
   test: {

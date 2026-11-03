@@ -8,7 +8,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const bundlerBuilds = {
   vite: () => buildWithVite({
-    configFile: path.resolve(__dirname, 'vite.config.js'),
+    configFile: path.resolve(__dirname, 'vite.config.mjs'),
     logLevel: 'warn'
   }),
   esbuild: () => buildWithEsbuild({
