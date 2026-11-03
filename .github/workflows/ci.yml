@@ -17,5 +17,9 @@ jobs:
           cache: 'yarn'
       - run: yarn install --frozen-lockfile
       - run: npx tsc --noEmit
+      - run: yarn test:unit
       - run: yarn build:lib
       - run: yarn build
+      # Ubuntu 24.04 blocks the user namespaces Chrome's sandbox needs
+      - run: echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
+      - run: yarn test:bundlers
