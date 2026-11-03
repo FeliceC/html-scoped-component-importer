@@ -134,7 +134,7 @@ export default class ComponentsDispatcher {
         }
 
         for (const node of mutation.removedNodes) {
-          if (!(node instanceof Element)) continue;
+          if (!(node instanceof Element) || node.isConnected) continue;
           for (const comp of this.findComponentElements(node)) {
             const componentId = comp.dataset.uuid;
             if (componentId && this.appComponents.has(componentId)) {

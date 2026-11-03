@@ -250,6 +250,24 @@ describe('ComponentsDispatcher', () => {
       expect(constructorSpy).toHaveBeenCalledTimes(1);
     });
 
+    it('keeps the instance alive when the component element is moved', async () => {
+      const source = document.createElement('div');
+      const destination = document.createElement('div');
+      const el = document.createElement('div');
+      el.dataset.component = 'DestroyableComponent';
+      source.appendChild(el);
+      document.body.append(source, destination);
+
+      await dispatcher.importAsyncComponents();
+      observerCleanup = dispatcher.observeDomChanges();
+
+      destination.appendChild(el);
+      await new Promise(resolve => setTimeout(resolve, 20));
+
+      expect(el.dataset.destroyed).toBeUndefined();
+      expect(dispatcher.APP_COMPONENTS.has(el.dataset.uuid!)).toBe(true);
+    });
+
     it('calls _destroy when the component element itself is removed', async () => {
       const el = document.createElement('div');
       el.dataset.component = 'DestroyableComponent';
