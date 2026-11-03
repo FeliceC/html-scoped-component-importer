@@ -1,8 +1,14 @@
+import EventBus from '../events/EventBus';
+import Logger from '../logger/Logger';
+import SharedState from '../state/SharedState';
+
 declare const process: { env: { NODE_ENV: string } };
 
-type ComponentConstructor = new (element: HTMLElement) => object;
+export type ComponentConstructor = new (element: HTMLElement, dispatcher: ComponentsDispatcher) => object;
 
 export default class ComponentsDispatcher {
+  readonly events: EventBus;
+  readonly logger: Logger;
   private componentSelector: string;
   private componentAttribute: string;
   private importedComponents: Map<string, ComponentConstructor>;
@@ -25,7 +31,13 @@ export default class ComponentsDispatcher {
     return this.componentAttribute;
   }
 
-  constructor() {
+  /**
+   * @param options.events share one event bus between dispatchers or with code outside components
+   * @param options.logger defaults to a logger enabled outside production builds
+   */
+  constructor(options: { events?: EventBus; logger?: Logger } = {}) {
+    this.logger = options.logger ?? new Logger({ scope: 'dispatcher' });
+    this.events = options.events ?? new EventBus({ logger: this.logger.withScope('events') });
     this.componentSelector = '[data-component]';
     this.componentAttribute = 'component';
     this.importedComponents = new Map();
@@ -103,7 +115,7 @@ export default class ComponentsDispatcher {
       el.append(details);
     }
 
-    console.error(`[ComponentDispatcher] Failed to load "${compName}":`, error);
+    this.logger.error(`failed to load "${compName}"`, error);
   }
 
   private async resolveComponentClass(compName: string): Promise<ComponentConstructor> {
@@ -143,6 +155,7 @@ export default class ComponentsDispatcher {
               if (typeof instance._destroy === 'function') {
                 (instance._destroy as () => void)();
               }
+              this.logger.debug(`destroyed "${comp.dataset[this.componentAttribute]}"`);
             }
           }
         }
@@ -170,7 +183,7 @@ export default class ComponentsDispatcher {
 
   private instantiateComponent(element: HTMLElement, componentName: string, ComponentClass: ComponentConstructor): void {
     try {
-      this.appComponents.set(element.dataset.uuid!, new ComponentClass(element));
+      this.appComponents.set(element.dataset.uuid!, new ComponentClass(element, this));
     } catch (error) {
       this.reportInitializationError(element, componentName, error);
     }
@@ -186,6 +199,7 @@ export default class ComponentsDispatcher {
         this.instantiateComponent(element, componentName, ComponentClass);
       }
     }
+    this.logInitializedComponents(elementsByComponentName);
   }
 
   async importAsyncComponents(target?: Element | Element[]): Promise<void> {
@@ -204,6 +218,20 @@ export default class ComponentsDispatcher {
         elements.forEach(element => this.instantiateComponent(element, componentName, ComponentClass));
       })
     );
+    this.logInitializedComponents(elementsByComponentName);
+  }
+
+  /** Creates a SharedState whose changes are logged under `state:<name>`. */
+  createState<State extends object>(name: string, initialState: State): SharedState<State> {
+    return new SharedState(initialState, { logger: this.logger.withScope(`state:${name}`) });
+  }
+
+  private logInitializedComponents(elementsByComponentName: Map<string, HTMLElement[]>): void {
+    if (elementsByComponentName.size === 0) return;
+    const countsByComponentName = Object.fromEntries(
+      [...elementsByComponentName].map(([componentName, elements]) => [componentName, elements.length])
+    );
+    this.logger.info(`set up ${Object.keys(countsByComponentName).join(', ')}`, countsByComponentName);
   }
 
   async createComponents(comps: Record<string, ComponentConstructor>): Promise<void> {

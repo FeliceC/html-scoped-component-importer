@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ComponentsDispatcher from '../../src/dispatcher/ComponentDispatcher';
+import EventBus from '../../src/events/EventBus';
+import Logger from '../../src/logger/Logger';
 
 class MockComponent {
   constructor(public element: HTMLElement) {
@@ -404,5 +406,50 @@ describe('ComponentsDispatcher', () => {
 
       expect(dispatcher.APP_COMPONENTS.size).toBe(2);
     });
+  });
+});
+
+describe('ComponentsDispatcher collaboration tools', () => {
+  beforeEach(() => {
+    document.body.innerHTML = '';
+  });
+
+  it('passes the dispatcher to component constructors so components can share events', async () => {
+    const receivedPayloads: unknown[] = [];
+    class PublisherComponent {
+      constructor(_element: HTMLElement, dispatcher: ComponentsDispatcher) {
+        dispatcher.events.emit('greeting', 'hello');
+      }
+    }
+    class SubscriberComponent {
+      constructor(_element: HTMLElement, dispatcher: ComponentsDispatcher) {
+        dispatcher.events.on('greeting', payload => receivedPayloads.push(payload));
+      }
+    }
+    document.body.innerHTML = '<div data-component="PublisherComponent"></div><div data-component="SubscriberComponent"></div>';
+    const dispatcher = new ComponentsDispatcher({ logger: new Logger({ enabled: false }) });
+
+    await dispatcher.importComponents({ PublisherComponent, SubscriberComponent });
+
+    expect(receivedPayloads).toEqual(['hello']);
+  });
+
+  it('uses the event bus passed in the options', () => {
+    const events = new EventBus({ logger: new Logger({ enabled: false }) });
+
+    expect(new ComponentsDispatcher({ events }).events).toBe(events);
+  });
+
+  it('creates shared states logged under their own scope', () => {
+    const logger = new Logger({ enabled: true });
+    const scopes: string[] = [];
+    logger.onEntry(entry => scopes.push(entry.scope));
+    vi.spyOn(console, 'debug').mockImplementation(() => {});
+
+    const cartState = new ComponentsDispatcher({ logger }).createState('cart', { count: 0 });
+    cartState.set({ count: 1 });
+
+    expect(cartState.get().count).toBe(1);
+    expect(scopes).toContain('state:cart');
   });
 });
